@@ -1,0 +1,76 @@
+buildscript {
+    repositories {
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
+    }
+
+    dependencies {
+        classpath "com.netflix.nebula:gradle-dependency-lock-plugin:4.+"
+    }
+}
+
+plugins {
+    id "nebula.dependency-lock" version "4.3.2"
+    id "groovy"
+//    id "maven"
+    id "java-gradle-plugin"
+}
+
+group = artifact_group
+version = "${artifact_version}.${build_number}"
+
+gradlePlugin {
+    plugins {
+        scalaMultiVersionPlugin {
+            id = "com.adtran.scala-multiversion-plugin"
+            implementationClass = "com.adtran.ScalaMultiVersionPlugin"
+        }
+    }
+}
+
+dependencyLock {
+    includeTransitives = true
+}
+task freeze(dependsOn: ['generateLock', 'saveLock'])
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+//    compile gradleApi()
+    compile localGroovy()
+
+    testCompile gradleTestKit()
+    testCompile 'junit:junit:4.12'
+}
+
+//// TODO: Upload to mavenCentral/gradle???
+//uploadArchives {
+//    repositories.mavenDeployer {
+//        repository(url: repository_path + release_repository) {
+//            authentication(userName:repository_username,password:repository_password)
+//        }
+//        snapshotRepository(url: repository_path + snapshot_repository) {
+//            authentication(userName:repository_username,password:repository_password)
+//        }
+//    }
+//}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = "3.2"
+}
+
+def configureTestTask(Task task) {
+    task.outputs.upToDateWhen { false }
+    task.testLogging {
+        events "passed", "skipped", "failed"
+        exceptionFormat "full"
+        stackTraceFilters "entryPoint"
+    }
+}
+configureTestTask(project.tasks.test)
+
+sourceCompatibility = 1.6
+targetCompatibility = 1.6

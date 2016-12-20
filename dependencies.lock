@@ -1,0 +1,84 @@
+{
+    "default": {
+        "com.netflix.nebula:gradle-dependency-lock-plugin": {
+            "locked": "4.3.0",
+            "requested": "4.3.0"
+        },
+        "com.netflix.nebula:gradle-scm-plugin": {
+            "locked": "2.2.0",
+            "transitive": [
+                "com.netflix.nebula:gradle-dependency-lock-plugin"
+            ]
+        }
+    },
+    "runtime": {
+        "com.netflix.nebula:gradle-dependency-lock-plugin": {
+            "locked": "4.3.0",
+            "requested": "4.3.0"
+        },
+        "com.netflix.nebula:gradle-scm-plugin": {
+            "locked": "2.2.0",
+            "transitive": [
+                "com.netflix.nebula:gradle-dependency-lock-plugin"
+            ]
+        }
+    },
+    "testCompile": {
+        "junit:junit": {
+            "locked": "4.12",
+            "requested": "4.12"
+        },
+        "org.hamcrest:hamcrest-core": {
+            "locked": "1.3",
+            "transitive": [
+                "junit:junit"
+            ]
+        }
+    },
+    "testCompileClasspath": {
+        "junit:junit": {
+            "locked": "4.12",
+            "requested": "4.12"
+        },
+        "org.hamcrest:hamcrest-core": {
+            "locked": "1.3",
+            "transitive": [
+                "junit:junit"
+            ]
+        }
+    },
+    "testCompileOnly": {
+        "junit:junit": {
+            "locked": "4.12",
+            "requested": "4.12"
+        },
+        "org.hamcrest:hamcrest-core": {
+            "locked": "1.3",
+            "transitive": [
+                "junit:junit"
+            ]
+        }
+    },
+    "testRuntime": {
+        "com.netflix.nebula:gradle-dependency-lock-plugin": {
+            "locked": "4.3.0",
+            "requested": "4.3.0"
+        },
+        "com.netflix.nebula:gradle-scm-plugin": {
+            "locked": "2.2.0",
+            "transitive": [
+                "com.netflix.nebula:gradle-dependency-lock-plugin"
+            ]
+        },
+        "junit:junit": {
+            "locked": "4.12",
+            "requested": "4.12"
+        },
+        "org.hamcrest:hamcrest-core": {
+            "locked": "1.3",
+            "transitive": [
+                "junit:junit"
+            ]
+        }
+    }
+}

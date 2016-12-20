@@ -1,0 +1,16 @@
+apply plugin: "scala"
+apply plugin: "java"
+
+repositories {
+    flatDir {
+        dirs 'fakeRepo'
+    }
+}
+
+dependencies {
+    compile "org.scala-lang:scala-library:scala_version"
+    compile "org.fake:fake-scala-dep_%%:1.2.3"
+    compile "org.fake:fake-java-dep:1.2.3"
+
+    testCompile "org.fake:fake-scala-test-dep_%%:1.2.3"
+}
