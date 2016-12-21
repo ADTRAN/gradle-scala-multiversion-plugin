@@ -9,10 +9,15 @@ import org.gradle.api.tasks.GradleBuild
 
 class ScalaMultiVersionPlugin implements Plugin<Project> {
     void apply(Project project) {
+        set_extension(project)
         calculate_scala_versions(project)
         set_resolution_strategy(project)
         set_base_name(project)
         add_tasks(project)
+    }
+
+    private void set_extension(Project project) {
+        project.extensions.create("scalaMultiVersion", ScalaMultiVersionPluginExtension)
     }
 
     private String scala_version_to_suffix(String scala_version) {
@@ -36,9 +41,8 @@ class ScalaMultiVersionPlugin implements Plugin<Project> {
     }
 
     private void replaceScalaVersions(DependencyResolveDetails details, Project project) {
-        def new_name = details.requested.name.replace("_%%", project.ext.scala_suffix)
-        def new_version = details.requested.version.replace("scala_version", project.ext.scala_version)
-        println("***** replacing $details.requested with $details.requested.group:$new_name:$new_version")
+        def new_name = details.requested.name.replace(project.scalaMultiVersion.scalaSuffixPlaceholder, project.ext.scala_suffix)
+        def new_version = details.requested.version.replace(project.scalaMultiVersion.scalaVersionPlaceholder, project.ext.scala_version)
         details.useTarget("$details.requested.group:$new_name:$new_version")
     }
 
@@ -58,7 +62,7 @@ class ScalaMultiVersionPlugin implements Plugin<Project> {
         project.ext.scala_versions.each { ver ->
             def new_task = project.tasks.create("build_$ver", GradleBuild) {
                 startParameter.projectProperties = [scala_version: ver]
-                tasks = ['build']
+                tasks = project.scalaMultiVersion.buildTasks
             }
             project.tasks.buildMultiVersion.dependsOn(new_task)
         }

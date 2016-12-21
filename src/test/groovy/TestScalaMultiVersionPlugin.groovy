@@ -1,4 +1,5 @@
 import com.adtran.ScalaMultiVersionPlugin
+import com.adtran.ScalaMultiVersionPluginExtension
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.Project
@@ -8,12 +9,16 @@ import org.gradle.testfixtures.ProjectBuilder
 
 class TestScalaMultiVersionPlugin extends GroovyTestCase {
 
-    private Project createProject(String scala_versions) {
+    private Project createProject(
+            String scala_versions,
+            ScalaMultiVersionPluginExtension extension = new ScalaMultiVersionPluginExtension())
+    {
         Project project = ProjectBuilder.builder()
                 .withProjectDir(new File("""${System.getProperty("user.dir")}/testProjects/codeProject"""))
                 .withName("codeProject")
                 .build()
         project.ext.scala_versions = scala_versions
+        project.ext.scalaMultiVersion = extension
         project.pluginManager.apply("java")
         project.pluginManager.apply(ScalaMultiVersionPlugin)
         project.evaluate()
@@ -69,6 +74,7 @@ class TestScalaMultiVersionPlugin extends GroovyTestCase {
         def versions = ["2.12.1", "2.11.8"]
         def project = createProject(versions.join(","))
         assert project.tasks.buildMultiVersion instanceof DefaultTask
+        project.tasks.withType(GradleBuild).each { assert it.tasks == ['build'] }
         versions.each {
             def task = project.tasks.getByName("build_$it")
             assert task instanceof GradleBuild
@@ -78,10 +84,25 @@ class TestScalaMultiVersionPlugin extends GroovyTestCase {
 
     void testResolutionStrategy() {
         def project = createProject("2.12.1")
-        def conf = project.configurations.getByName("compile").resolvedConfiguration
-        assert conf.lenientConfiguration.unresolvedModuleDependencies.size() == 0
-        def deps = conf.lenientConfiguration.getAllModuleDependencies()
+        def conf = project.configurations.getByName("compile").resolvedConfiguration.lenientConfiguration
+        assert conf.unresolvedModuleDependencies.size() == 0
+        def deps = conf.getAllModuleDependencies()
+        assert deps.size() == 3
         deps.each { assert !it.name.contains("_%%") }
         deps.each { assert !it.moduleVersion.contains("scala_version") }
+    }
+
+    void testExtension() {
+        def buildTasks = ["t1", "t2"]
+        def extension = new ScalaMultiVersionPluginExtension(
+                buildTasks: buildTasks,
+                scalaVersionPlaceholder: "<<sv>>",
+                scalaSuffixPlaceholder: "_##"
+        )
+        def project = createProject("2.12.1", extension)
+        project.tasks.withType(GradleBuild).each { assert it.tasks == buildTasks }
+        def conf = project.configurations.getByName("compile").resolvedConfiguration.lenientConfiguration
+        assert conf.unresolvedModuleDependencies.size() == 2
+        assert conf.getAllModuleDependencies().size() == 1
     }
 }
