@@ -20,6 +20,9 @@ plugins {
 group = artifact_group
 version = "${artifact_version}.${build_number}"
 
+sourceCompatibility = 1.6
+targetCompatibility = 1.6
+
 gradlePlugin {
     plugins {
         scalaMultiVersionPlugin {
@@ -71,6 +74,3 @@ def configureTestTask(Task task) {
     }
 }
 configureTestTask(project.tasks.test)
-
-sourceCompatibility = 1.6
-targetCompatibility = 1.6

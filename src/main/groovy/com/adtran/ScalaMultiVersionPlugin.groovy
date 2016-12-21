@@ -8,63 +8,66 @@ import org.gradle.api.artifacts.DependencyResolveDetails
 import org.gradle.api.tasks.GradleBuild
 
 class ScalaMultiVersionPlugin implements Plugin<Project> {
+    private Project project
+
     void apply(Project project) {
-        set_extension(project)
-        calculate_scala_versions(project)
-        set_resolution_strategy(project)
-        set_base_name(project)
-        add_tasks(project)
+        this.project = project
+        setExtension()
+        calculateScalaVersions()
+        setResolutionStrategy()
+        setBaseName()
+        addTasks()
     }
 
-    private void set_extension(Project project) {
+    private void setExtension() {
         project.extensions.create("scalaMultiVersion", ScalaMultiVersionPluginExtension)
     }
 
-    private String scala_version_to_suffix(String scala_version) {
-        def m = scala_version =~ /(\d+\.\d+)\.\d+/
+    private String scalaVersionToSuffix(String scalaVersion) {
+        def m = scalaVersion =~ /(\d+\.\d+)\.\d+/
         if (m.matches() && m.groupCount() == 1) {
             return "_" + m.group(1)
         } else {
-            throw new GradleException("""Invalid scala version "$scala_version". Please specify full X.Y.Z scala versions in scala_versions property.""")
+            throw new GradleException("""Invalid scala version "$scalaVersion". Please specify full X.Y.Z scala versions in `scalaVersions` property.""")
         }
     }
 
-    private void calculate_scala_versions (Project project) {
+    private void calculateScalaVersions() {
         try {
-            project.ext.scala_versions = project.ext.scala_versions.split(",").collect{it.trim()}
+            project.ext.scalaVersions = project.ext.scalaVersions.split(",").collect{it.trim()}
         } catch (Exception e) {
-            throw new GradleException("""Must set scala_versions property.""")
+            throw new GradleException("""Must set `scalaVersions` property.""")
         }
-        project.ext.scala_suffixes = project.ext.scala_versions.collect { scala_version_to_suffix(it) }
-        if (!project.ext.has("scala_version")) project.ext.scala_version = project.ext.scala_versions[0]
-        project.ext.scala_suffix = scala_version_to_suffix(project.ext.scala_version)
+        project.ext.scalaSuffixes = project.ext.scalaVersions.collect { scalaVersionToSuffix(it) }
+        if (!project.ext.has("scalaVersion")) project.ext.scalaVersion = project.ext.scalaVersions[0]
+        project.ext.scalaSuffix = scalaVersionToSuffix(project.ext.scalaVersion)
     }
 
-    private void replaceScalaVersions(DependencyResolveDetails details, Project project) {
-        def new_name = details.requested.name.replace(project.scalaMultiVersion.scalaSuffixPlaceholder, project.ext.scala_suffix)
-        def new_version = details.requested.version.replace(project.scalaMultiVersion.scalaVersionPlaceholder, project.ext.scala_version)
-        details.useTarget("$details.requested.group:$new_name:$new_version")
+    private void replaceScalaVersions(DependencyResolveDetails details) {
+        def newName = details.requested.name.replace(project.scalaMultiVersion.scalaSuffixPlaceholder, project.ext.scalaSuffix)
+        def newVersion = details.requested.version.replace(project.scalaMultiVersion.scalaVersionPlaceholder, project.ext.scalaVersion)
+        details.useTarget("$details.requested.group:$newName:$newVersion")
     }
 
-    private void set_resolution_strategy(Project project) {
+    private void setResolutionStrategy() {
         project.configurations.all { Configuration conf ->
-            conf.resolutionStrategy.eachDependency { replaceScalaVersions(it, project) }
+            conf.resolutionStrategy.eachDependency { replaceScalaVersions(it) }
         }
     }
 
-    private void set_base_name(Project project) {
-        project.jar.baseName += project.ext.scala_suffix
+    private void setBaseName() {
+        project.jar.baseName += project.ext.scalaSuffix
     }
 
-    private void add_tasks(Project project) {
+    private void addTasks() {
         project.tasks.create("buildMultiVersion")
 
-        project.ext.scala_versions.each { ver ->
-            def new_task = project.tasks.create("build_$ver", GradleBuild) {
-                startParameter.projectProperties = [scala_version: ver]
+        project.ext.scalaVersions.each { ver ->
+            def newTask = project.tasks.create("build_$ver", GradleBuild) {
+                startParameter.projectProperties = [scalaVersion: ver]
                 tasks = project.scalaMultiVersion.buildTasks
             }
-            project.tasks.buildMultiVersion.dependsOn(new_task)
+            project.tasks.buildMultiVersion.dependsOn(newTask)
         }
     }
 }

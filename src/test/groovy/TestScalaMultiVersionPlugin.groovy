@@ -3,21 +3,19 @@ import com.adtran.ScalaMultiVersionPluginExtension
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.Project
-import org.gradle.api.internal.plugins.PluginApplicationException
 import org.gradle.api.tasks.GradleBuild
 import org.gradle.testfixtures.ProjectBuilder
 
 class TestScalaMultiVersionPlugin extends GroovyTestCase {
 
     private Project createProject(
-            String scala_versions,
+            String scalaVersions,
             ScalaMultiVersionPluginExtension extension = new ScalaMultiVersionPluginExtension())
     {
         Project project = ProjectBuilder.builder()
-                .withProjectDir(new File("""${System.getProperty("user.dir")}/testProjects/codeProject"""))
-                .withName("codeProject")
+                .withProjectDir(new File(System.getProperty("user.dir"), "testProjects/simpleProject"))
                 .build()
-        project.ext.scala_versions = scala_versions
+        project.ext.scalaVersions = scalaVersions
         project.ext.scalaMultiVersion = extension
         project.pluginManager.apply("java")
         project.pluginManager.apply(ScalaMultiVersionPlugin)
@@ -25,18 +23,13 @@ class TestScalaMultiVersionPlugin extends GroovyTestCase {
         return project
     }
 
-    void setUp() {
-    }
-
-    void tearDown() {}
-
     void testBadScalaVersions() {
-        [ [null, "Must set scala_versions property."],
+        [ [null, "Must set `scalaVersions` property."],
           ["", "Invalid scala version"],
           ["2.12", "Invalid scala version"]
         ].each {
-            def (scala_versions, error_msg) = it
-            def msg = shouldFailWithCause(GradleException) { createProject(scala_versions) }
+            def (scalaVersions, error_msg) = it
+            def msg = shouldFailWithCause(GradleException) { createProject(scalaVersions) }
             assert msg.contains(error_msg)
         }
     }
@@ -48,20 +41,20 @@ class TestScalaMultiVersionPlugin extends GroovyTestCase {
 
     void testSingleVersion() {
         def project = createProject("2.12.1")
-        assert ["2.12.1"] == project.ext.scala_versions
-        assert ["_2.12"] == project.ext.scala_suffixes
-        assert "2.12.1" == project.ext.scala_version
-        assert "_2.12" == project.ext.scala_suffix
+        assert ["2.12.1"] == project.ext.scalaVersions
+        assert ["_2.12"] == project.ext.scalaSuffixes
+        assert "2.12.1" == project.ext.scalaVersion
+        assert "_2.12" == project.ext.scalaSuffix
     }
 
     void testMultipleVersions() {
         // comma-separated lists, with or without whitespace, should be allowed
         ["2.12.1,2.11.8", "2.12.1, 2.11.8"].each {
             def project = createProject(it)
-            assert ["2.12.1", "2.11.8"] == project.ext.scala_versions
-            assert ["_2.12", "_2.11"] == project.ext.scala_suffixes
-            assert "2.12.1" == project.ext.scala_version
-            assert "_2.12" == project.ext.scala_suffix
+            assert ["2.12.1", "2.11.8"] == project.ext.scalaVersions
+            assert ["_2.12", "_2.11"] == project.ext.scalaSuffixes
+            assert "2.12.1" == project.ext.scalaVersion
+            assert "_2.12" == project.ext.scalaSuffix
         }
     }
 
@@ -89,7 +82,7 @@ class TestScalaMultiVersionPlugin extends GroovyTestCase {
         def deps = conf.getAllModuleDependencies()
         assert deps.size() == 3
         deps.each { assert !it.name.contains("_%%") }
-        deps.each { assert !it.moduleVersion.contains("scala_version") }
+        deps.each { assert !it.moduleVersion.contains("scalaVersion") }
     }
 
     void testExtension() {
