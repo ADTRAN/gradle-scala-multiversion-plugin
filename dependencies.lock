@@ -1,28 +1,4 @@
 {
-    "default": {
-        "com.netflix.nebula:gradle-dependency-lock-plugin": {
-            "locked": "4.3.0",
-            "requested": "4.3.0"
-        },
-        "com.netflix.nebula:gradle-scm-plugin": {
-            "locked": "2.2.0",
-            "transitive": [
-                "com.netflix.nebula:gradle-dependency-lock-plugin"
-            ]
-        }
-    },
-    "runtime": {
-        "com.netflix.nebula:gradle-dependency-lock-plugin": {
-            "locked": "4.3.0",
-            "requested": "4.3.0"
-        },
-        "com.netflix.nebula:gradle-scm-plugin": {
-            "locked": "2.2.0",
-            "transitive": [
-                "com.netflix.nebula:gradle-dependency-lock-plugin"
-            ]
-        }
-    },
     "testCompile": {
         "junit:junit": {
             "locked": "4.12",
@@ -60,16 +36,6 @@
         }
     },
     "testRuntime": {
-        "com.netflix.nebula:gradle-dependency-lock-plugin": {
-            "locked": "4.3.0",
-            "requested": "4.3.0"
-        },
-        "com.netflix.nebula:gradle-scm-plugin": {
-            "locked": "2.2.0",
-            "transitive": [
-                "com.netflix.nebula:gradle-dependency-lock-plugin"
-            ]
-        },
         "junit:junit": {
             "locked": "4.12",
             "requested": "4.12"
