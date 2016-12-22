@@ -5,7 +5,7 @@ Scala Multi-Version Plugin
 This Gradle plugin allows a project to build against multiple versions of scala. You declare a list of scala versions
 via a project property (e.g. ``scalaVersions = 2.12.1, 2.11.8``), and then declare dependencies like this::
 
-    compile "org.scala-lang:scala-library:scala_version"
+    compile "org.scala-lang:scala-library:scala-version"
     compile "org.scala-lang.modules:scala-parser-combinators_%%:1.0.4"
 
 The plugin will then add a tasks like ``build_2.12.1`` and ``build_2.11.8`` to build a particular version, along with a
@@ -54,7 +54,7 @@ with actual values before being resolved. The first is ``scala-version`` and can
 dependency and will be replaced by the fully-qualified scala version for this build (e.g. ``'2.12.1'``). This is
 typically used when declaring your scala-library dependency::
 
-    compile "org.scala-lang:scala-library:scala_version"
+    compile "org.scala-lang:scala-library:scala-version"
 
 The second placeholder is ``_%%`` and can be used in a dependency module name to stand for the scala "suffix"
 corresponding to this scala version (e.g. ``'_2.12'``). For example::
