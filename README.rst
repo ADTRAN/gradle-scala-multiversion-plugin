@@ -93,6 +93,10 @@ Property                      Type           Default               Description
                                                                    be run once for each scala version specified.
 ============================  =============  ====================  =====================================================
 
+The ``buildTasks`` value can also be set (or overridden) by setting a project property with the same
+name. This is useful, for example, to change the tasks that will be run from the command line (see
+Examples_).
+
 Usage
 =====
 
@@ -114,6 +118,18 @@ Property            Type           Description
 ``scalaVersion``    String         The scala version that will be used for *this* build. E.g. ``'2.12.1'``.
 ``scalaSuffix``     String         The scala suffix that will be used for *this* build. E.g. ``'_2.12'``.
 ==================  =============  =====================================================================================
+
+Examples
+--------
+
+Build the default version::
+    ``gradle build``
+Build a non-default version::
+    ``gradle build_2.12.1``
+Build all versions::
+    ``gradle buildMultiVersion``
+Build and publish all versions::
+    ``gradle buildMultiVersion -PbuildTasks=build,uploadArchives``
 
 Known Limitations
 =================

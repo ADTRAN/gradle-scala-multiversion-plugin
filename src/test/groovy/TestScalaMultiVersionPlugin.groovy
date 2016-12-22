@@ -10,13 +10,15 @@ class TestScalaMultiVersionPlugin extends GroovyTestCase {
 
     private Project createProject(
             String scalaVersions,
-            ScalaMultiVersionPluginExtension extension = new ScalaMultiVersionPluginExtension())
+            ScalaMultiVersionPluginExtension extension = new ScalaMultiVersionPluginExtension(),
+            Map<String,String> properties = [:])
     {
         Project project = ProjectBuilder.builder()
                 .withProjectDir(new File(System.getProperty("user.dir"), "testProjects/simpleProject"))
                 .build()
         project.ext.scalaVersions = scalaVersions
         project.ext.scalaMultiVersion = extension
+        properties.each { k,v -> project.ext.set(k, v) }
         project.pluginManager.apply("java")
         project.pluginManager.apply(ScalaMultiVersionPlugin)
         project.evaluate()
@@ -97,5 +99,15 @@ class TestScalaMultiVersionPlugin extends GroovyTestCase {
         def conf = project.configurations.getByName("compile").resolvedConfiguration.lenientConfiguration
         assert conf.unresolvedModuleDependencies.size() == 2
         assert conf.getAllModuleDependencies().size() == 1
+    }
+
+    void testExtensionOverride() {
+        def extension = new ScalaMultiVersionPluginExtension(
+                buildTasks: ['a1', 'a2'],
+                scalaVersionPlaceholder: "<<sv>>",
+                scalaSuffixPlaceholder: "_##"
+        )
+        def project = createProject("2.12.1", extension, ["buildTasks": "t1, t2"])
+        project.tasks.withType(GradleBuild).each { assert it.tasks == ["t1", "t2"] }
     }
 }

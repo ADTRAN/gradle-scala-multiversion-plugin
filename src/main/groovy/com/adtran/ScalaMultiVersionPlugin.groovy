@@ -13,14 +13,23 @@ class ScalaMultiVersionPlugin implements Plugin<Project> {
     void apply(Project project) {
         this.project = project
         setExtension()
-        calculateScalaVersions()
-        setResolutionStrategy()
-        setBaseName()
-        addTasks()
+        project.afterEvaluate {
+            overrideExtensionFromProperties()
+            calculateScalaVersions()
+            setResolutionStrategy()
+            setBaseName()
+            addTasks()
+        }
     }
 
     private void setExtension() {
         project.extensions.create("scalaMultiVersion", ScalaMultiVersionPluginExtension)
+    }
+
+    private void overrideExtensionFromProperties() {
+        if (project.ext.has('buildTasks')) {
+            project.scalaMultiVersion.buildTasks = project.ext.buildTasks.split(",").collect{it.trim()}
+        }
     }
 
     private String scalaVersionToSuffix(String scalaVersion) {
@@ -64,7 +73,8 @@ class ScalaMultiVersionPlugin implements Plugin<Project> {
 
         project.ext.scalaVersions.each { ver ->
             def newTask = project.tasks.create("build_$ver", GradleBuild) {
-                startParameter.projectProperties = [scalaVersion: ver]
+                startParameter = project.gradle.startParameter.newInstance()
+                startParameter.projectProperties["scalaVersion"] = ver
                 tasks = project.scalaMultiVersion.buildTasks
             }
             project.tasks.buildMultiVersion.dependsOn(newTask)
