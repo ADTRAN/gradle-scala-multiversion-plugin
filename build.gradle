@@ -1,0 +1,135 @@
+/*
+ * Copyright 2017 ADTRAN, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+buildscript {
+    repositories {
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
+    }
+
+    dependencies {
+        classpath "com.netflix.nebula:gradle-dependency-lock-plugin:4.+"
+    }
+}
+
+plugins {
+    id "nebula.dependency-lock" version "4.3.2"
+    id "groovy"
+    id "maven"
+    id "java-gradle-plugin"
+}
+
+group = artifact_group
+version = "${artifact_version}.${build_number}"
+
+sourceCompatibility = 1.6
+targetCompatibility = 1.6
+
+gradlePlugin {
+    plugins {
+        scalaMultiVersionPlugin {
+            id = "${group}.${artifact_name}"
+            implementationClass = "com.adtran.ScalaMultiVersionPlugin"
+        }
+    }
+}
+
+dependencyLock {
+    includeTransitives = true
+}
+task freeze(dependsOn: ['generateLock', 'saveLock'])
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile localGroovy()
+
+    testCompile gradleTestKit()
+    testCompile 'junit:junit:4.12'
+}
+
+
+uploadArchives {
+    repositories.mavenDeployer {
+        repository(url: repo_url) {
+            authentication(userName: repo_username, password: repo_password)
+        }
+
+        pom.project {
+            name "$artifact_group:$artifact_name"
+            packaging 'jar'
+            description 'Gradle plugin to build a project against multiple versions of scala'
+            url 'https://github.com/ADTRAN/gradle-scala-multiversion-plugin' // TODO: check when published
+
+            scm {
+                connection 'scm:git:https://github.com/ADTRAN/gradle-scala-multiversion-plugin.git' // TODO: check when published
+                developerConnection 'scm:git:ssh://git@github.com:ADTRAN/gradle-scala-multiversion-plugin.git' // TODO: check when published
+                url 'https://github.com/ADTRAN/gradle-scala-multiversion-plugin' // TODO: check when published
+            }
+
+            licenses {
+                license {
+                    name 'Apache License, Version 2.0'
+                    url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                }
+            }
+
+            developers {
+                developer {
+                    name 'Nathan Alderson'
+                    email 'nathan.alderson@adtran.com'
+                    organization 'ADTRAN, Inc.'
+                    organizationUrl 'http://www.adtran.com/'
+                }
+            }
+        }
+    }
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = "3.2"
+}
+
+task sourcesJar(type: Jar) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+task javadocJar(type: Jar) {
+    classifier = 'javadoc'
+    from groovydoc
+    from 'README.rst'
+}
+
+groovydoc.overviewText = resources.text.fromString('Please see <a href="README.rst">README.rst</a>')
+
+assemble.dependsOn("sourcesJar", "javadocJar")
+
+artifacts {
+    archives sourcesJar, javadocJar
+}
+
+def configureTestTask(Task task) {
+    task.outputs.upToDateWhen { false }
+    task.testLogging {
+        events "passed", "skipped", "failed"
+        exceptionFormat "full"
+        stackTraceFilters "entryPoint"
+    }
+}
+configureTestTask(project.tasks.test)
