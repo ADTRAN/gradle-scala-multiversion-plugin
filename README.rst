@@ -139,6 +139,11 @@ versions in ``scalaVersions`` from the same major version (Scala uses <epoch>.<m
 will overwrite each other and only the last one will survive. So for example ``scalaVersions = 2.11.1, 2.11.8`` won't
 work as you expect today.
 
+License
+=======
+
+This project is licensed under the Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0).
+
 Contributing
 ============
 
