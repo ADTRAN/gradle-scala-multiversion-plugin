@@ -21,6 +21,7 @@ import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.DependencyResolveDetails
 import org.gradle.api.tasks.GradleBuild
+import org.gradle.api.tasks.bundling.Jar
 
 class ScalaMultiVersionPlugin implements Plugin<Project> {
     private Project project
@@ -80,7 +81,9 @@ class ScalaMultiVersionPlugin implements Plugin<Project> {
     }
 
     private void setBaseName() {
-        project.jar.baseName += project.ext.scalaSuffix
+        project.tasks.withType(Jar) { t ->
+            t.baseName += project.ext.scalaSuffix
+        }
     }
 
     private void addTasks() {
