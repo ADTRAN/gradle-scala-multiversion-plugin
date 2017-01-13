@@ -28,13 +28,11 @@ class ScalaMultiVersionPlugin implements Plugin<Project> {
     void apply(Project project) {
         this.project = project
         setExtension()
-        project.afterEvaluate {
-            overrideExtensionFromProperties()
-            calculateScalaVersions()
-            setResolutionStrategy()
-            setBaseName()
-            addTasks()
-        }
+        overrideExtensionFromProperties()
+        calculateScalaVersions()
+        setResolutionStrategy()
+        setBaseName()
+        addTasks()
     }
 
     private void setExtension() {
@@ -42,8 +40,10 @@ class ScalaMultiVersionPlugin implements Plugin<Project> {
     }
 
     private void overrideExtensionFromProperties() {
-        if (project.ext.has('buildTasks')) {
-            project.scalaMultiVersion.buildTasks = project.ext.buildTasks.split(",").collect{it.trim()}
+        project.afterEvaluate {
+            if (project.ext.has('buildTasks')) {
+                project.scalaMultiVersion.buildTasks = project.ext.buildTasks.split(",").collect{it.trim()}
+            }
         }
     }
 
@@ -84,15 +84,17 @@ class ScalaMultiVersionPlugin implements Plugin<Project> {
     }
 
     private void addTasks() {
-        project.tasks.create("buildMultiVersion")
+        project.afterEvaluate {
+            project.tasks.create("buildMultiVersion")
 
-        project.ext.scalaVersions.each { ver ->
-            def newTask = project.tasks.create("build_$ver", GradleBuild) {
-                startParameter = project.gradle.startParameter.newInstance()
-                startParameter.projectProperties["scalaVersion"] = ver
-                tasks = project.scalaMultiVersion.buildTasks
+            project.ext.scalaVersions.each { ver ->
+                def newTask = project.tasks.create("build_$ver", GradleBuild) {
+                    startParameter = project.gradle.startParameter.newInstance()
+                    startParameter.projectProperties["scalaVersion"] = ver
+                    tasks = project.scalaMultiVersion.buildTasks
+                }
+                project.tasks.buildMultiVersion.dependsOn(newTask)
             }
-            project.tasks.buildMultiVersion.dependsOn(newTask)
         }
     }
 }
