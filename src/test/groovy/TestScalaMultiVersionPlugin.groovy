@@ -84,7 +84,7 @@ class TestScalaMultiVersionPlugin extends GroovyTestCase {
         def versions = ["2.12.1", "2.11.8"]
         def project = createProject(versions.join(","))
         assert project.tasks.buildMultiVersion instanceof DefaultTask
-        project.tasks.withType(GradleBuild).each { assert it.tasks == ['build'] }
+        project.tasks.withType(GradleBuild).each { assert it.tasks == [':build'] }
         versions.each {
             def task = project.tasks.getByName("build_$it")
             assert task instanceof GradleBuild
@@ -103,14 +103,13 @@ class TestScalaMultiVersionPlugin extends GroovyTestCase {
     }
 
     void testExtension() {
-        def buildTasks = ["t1", "t2"]
         def extension = new ScalaMultiVersionPluginExtension(
-                buildTasks: buildTasks,
+                buildTasks: ["t1", "t2"],
                 scalaVersionPlaceholder: "<<sv>>",
                 scalaSuffixPlaceholder: "_##"
         )
         def project = createProject("2.12.1", extension)
-        project.tasks.withType(GradleBuild).each { assert it.tasks == buildTasks }
+        project.tasks.withType(GradleBuild).each { assert it.tasks == [":t1", ":t2"] }
         def conf = project.configurations.getByName("compile").resolvedConfiguration.lenientConfiguration
         assert conf.unresolvedModuleDependencies.size() == 2
         assert conf.getAllModuleDependencies().size() == 1
@@ -123,6 +122,6 @@ class TestScalaMultiVersionPlugin extends GroovyTestCase {
                 scalaSuffixPlaceholder: "_##"
         )
         def project = createProject("2.12.1", extension, ["buildTasks": "t1, t2"])
-        project.tasks.withType(GradleBuild).each { assert it.tasks == ["t1", "t2"] }
+        project.tasks.withType(GradleBuild).each { assert it.tasks == [":t1", ":t2"] }
     }
 }

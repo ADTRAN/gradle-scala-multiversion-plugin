@@ -99,7 +99,9 @@ class ScalaMultiVersionPlugin implements Plugin<Project> {
                 def newTask = project.tasks.create("build_$ver", GradleBuild) {
                     startParameter = project.gradle.startParameter.newInstance()
                     startParameter.projectProperties["scalaVersion"] = ver
-                    tasks = project.scalaMultiVersion.buildTasks
+                    tasks = project.scalaMultiVersion.buildTasks.collect {
+                        project.tasks.getByPath(it).path
+                    }
                 }
                 project.tasks.buildMultiVersion.dependsOn(newTask)
             }

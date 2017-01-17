@@ -27,3 +27,6 @@ dependencies {
     compile "org.fake:fake-scala-dep_%%:1.2.3"
     compile "org.fake:fake-java-dep:1.2.3"
 }
+
+task t1()
+task t2()
