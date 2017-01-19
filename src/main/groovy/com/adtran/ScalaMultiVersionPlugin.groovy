@@ -22,6 +22,8 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.DependencyResolveDetails
 import org.gradle.api.tasks.GradleBuild
 import org.gradle.api.tasks.bundling.Jar
+import org.gradle.api.tasks.StopExecutionException
+import org.gradle.api.plugins.ExtraPropertiesExtension.UnknownPropertyException
 
 class ScalaMultiVersionPlugin implements Plugin<Project> {
     private Project project
@@ -29,48 +31,57 @@ class ScalaMultiVersionPlugin implements Plugin<Project> {
     void apply(Project project) {
         this.project = project
         setExtension()
-        overrideExtensionFromProperties()
         calculateScalaVersions()
         setResolutionStrategy()
-        setBaseName()
         addTasks()
+        addSuffixToJars()
     }
 
     private void setExtension() {
         project.extensions.create("scalaMultiVersion", ScalaMultiVersionPluginExtension)
     }
 
-    private void overrideExtensionFromProperties() {
-        project.afterEvaluate {
-            if (project.ext.has('buildTasks')) {
-                project.scalaMultiVersion.buildTasks = project.ext.buildTasks.split(",").collect{it.trim()}
-            }
-        }
+    private boolean validateScalaVersion(String scalaVersion) {
+        def m = scalaVersion =~ /\d+\.\d+\.\d+/
+        return m.matches()
     }
 
     private String scalaVersionToSuffix(String scalaVersion) {
         def m = scalaVersion =~ /(\d+\.\d+)\.\d+/
-        if (m.matches() && m.groupCount() == 1) {
-            return "_" + m.group(1)
-        } else {
-            throw new GradleException("""Invalid scala version "$scalaVersion". Please specify full X.Y.Z scala versions in `scalaVersions` property.""")
+        m.matches()
+        return "_" + m.group(1)
+    }
+
+    private List<String> parseScalaVersionList(propertyName) {
+        try {
+            def versions = project.ext.get(propertyName).split(",").collect{it.trim()}
+            def firstInvalid = versions.find { !validateScalaVersion(it) }
+            if (firstInvalid != null) {
+                throw new GradleException(
+                    "Invalid scala version '$firstInvalid' in '$propertyName' property. " +
+                    "Please specify full X.Y.Z scala versions in 'scalaVersions' property.")
+            }
+            return versions
+        } catch (NullPointerException | UnknownPropertyException e) {
+            return null
         }
     }
 
     private void calculateScalaVersions() {
-        try {
-            project.ext.scalaVersions = project.ext.scalaVersions.split(",").collect{it.trim()}
-        } catch (Exception e) {
-            throw new GradleException("""Must set `scalaVersions` property.""")
+        project.ext.scalaVersions = parseScalaVersionList("scalaVersions")
+        if (project.ext.scalaVersions == null) {
+            throw new GradleException("Must set 'scalaVersions' property.")
         }
-        project.ext.scalaSuffixes = project.ext.scalaVersions.collect { scalaVersionToSuffix(it) }
-        if (!project.ext.has("scalaVersion")) project.ext.scalaVersion = project.ext.scalaVersions[0]
-        project.ext.scalaSuffix = scalaVersionToSuffix(project.ext.scalaVersion)
+        project.ext.defaultScalaVersions = parseScalaVersionList("defaultScalaVersions")
     }
 
     private void replaceScalaVersions(DependencyResolveDetails details) {
-        def newName = details.requested.name.replace(project.scalaMultiVersion.scalaSuffixPlaceholder, project.ext.scalaSuffix)
-        def newVersion = details.requested.version.replace(project.scalaMultiVersion.scalaVersionPlaceholder, project.ext.scalaVersion)
+        def newName = details.requested.name.replace(
+                project.scalaMultiVersion.scalaSuffixPlaceholder,
+                project.ext.scalaSuffix)
+        def newVersion = details.requested.version.replace(
+                project.scalaMultiVersion.scalaVersionPlaceholder,
+                project.ext.scalaVersion)
         def newTarget = "$details.requested.group:$newName:$newVersion"
         if(newTarget != details.requested.toString()) {
             // unnecessarily calling `useTarget` seemed to cause problems in some cases,
@@ -80,30 +91,51 @@ class ScalaMultiVersionPlugin implements Plugin<Project> {
     }
 
     private void setResolutionStrategy() {
-        project.configurations.all { Configuration conf ->
-            conf.resolutionStrategy.eachDependency { replaceScalaVersions(it) }
+        project.allprojects { p ->
+            p.configurations.all { conf ->
+                conf.resolutionStrategy.eachDependency { replaceScalaVersions(it) }
+            }
         }
     }
 
-    private void setBaseName() {
-        project.tasks.withType(Jar) { t ->
-            t.baseName += project.ext.scalaSuffix
+    private List<String> determineScalaVersions() {
+        def scalaVersions = []
+        if (project.ext.has("allScalaVersions")) {
+            scalaVersions = project.ext.scalaVersions
+        } else if (project.ext.defaultScalaVersions) {
+            scalaVersions = project.ext.defaultScalaVersions
+        } else {
+            scalaVersions = project.ext.scalaVersions
         }
+        if (!project.ext.has("scalaVersion")) {
+            project.ext.scalaVersion = scalaVersions.head()
+        }
+        project.ext.scalaSuffix = scalaVersionToSuffix(project.ext.scalaVersion)
+        return scalaVersions.tail()
     }
 
     private void addTasks() {
-        project.afterEvaluate {
-            project.tasks.create("buildMultiVersion")
-
-            project.ext.scalaVersions.each { ver ->
-                def newTask = project.tasks.create("build_$ver", GradleBuild) {
+        def recurseScalaVersions = determineScalaVersions()
+        if (!project.ext.has("recursed")) {
+            def buildVersionTasks = recurseScalaVersions.collect { ver ->
+                project.tasks.create("recurseWithScalaVersion_$ver", GradleBuild) {
                     startParameter = project.gradle.startParameter.newInstance()
                     startParameter.projectProperties["scalaVersion"] = ver
-                    tasks = project.scalaMultiVersion.buildTasks.collect {
-                        project.tasks.getByPath(it).path
-                    }
+                    startParameter.projectProperties["recursed"] = true
+                    tasks = project.gradle.startParameter.taskNames
                 }
-                project.tasks.buildMultiVersion.dependsOn(newTask)
+            }
+            def tasksToAdd = buildVersionTasks.collect{ it.path }
+            project.gradle.startParameter.taskNames += tasksToAdd
+        }
+    }
+
+    private void addSuffixToJars() {
+        project.allprojects { p ->
+            p.afterEvaluate {
+                p.tasks.withType(Jar) { t ->
+                    t.baseName += p.rootProject.ext.scalaSuffix
+                }
             }
         }
     }

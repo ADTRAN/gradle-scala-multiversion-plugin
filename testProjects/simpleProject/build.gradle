@@ -13,8 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+buildscript {
+    def pluginClasspath = new File(buildDir, "plugin-classpath.txt").readLines()
+
+    dependencies {
+        classpath files(pluginClasspath)
+    }
+}
+
 apply plugin: "scala"
 apply plugin: "java"
+apply plugin: "com.adtran.scala-multiversion-plugin"
 
 repositories {
     flatDir {
@@ -28,5 +37,5 @@ dependencies {
     compile "org.fake:fake-java-dep:1.2.3"
 }
 
-task t1()
-task t2()
+task t1() << { println "t1 $project.scalaVersion" }
+task t2() << { println "t2 $project.scalaVersion" }

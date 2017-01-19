@@ -8,9 +8,9 @@ via a project property (e.g. ``scalaVersions = 2.12.1, 2.11.8``), and then decla
     compile "org.scala-lang:scala-library:scala-version"
     compile "org.scala-lang.modules:scala-parser-combinators_%%:1.0.4"
 
-The plugin will then add a tasks like ``build_2.12.1`` and ``build_2.11.8`` to build a particular version, along with a
-task ``buildMultiVersions`` to build them all!  ``gradle build`` will still just build one version—the first one listed
-in ``scalaVersions``. Your jar file will also get the appropriate suffix added (e.g. ``my-project_2.12-1.2.3.jar``).
+Now when you run gradle tasks, they'll run once for each scala version. If you wish, you can also control which scala
+versions get executed by default and override the default from the command line. Your jar file will also get the
+appropriate suffix added (e.g. ``my-project_2.12-1.2.3.jar``).
 
 Setup
 =====
@@ -32,13 +32,15 @@ Then apply the plugin using either the old style::
       id "com.adtran.scala-multiversion-plugin"
     }
 
+Note that if applying this plugin to a multi-project build, it should be applied only to the root project.
+
 Setting Scala Versions
 ----------------------
 
 Before use, you need to indicate which versions of scala you want to compile for by setting a Gradle property called
 ``scalaVersions``. It should be a comma-separated list (whitespace optional) of fully-qualified (X.Y.Z) scala version
-numbers. The first version in the list will become the "default" version. The easiest way to add this property is
-probably to add something like this to your ``gradle.properties`` file::
+numbers. The easiest way to add this property is probably to add something like this to your ``gradle.properties``
+file::
 
     scalaVersions = 2.12.1, 2.11.8
 
@@ -51,7 +53,7 @@ Updating Dependencies
 
 The plugin allows you to use two different placeholders when declaring your dependencies which will then be substituted
 with actual values before being resolved. The first is ``scala-version`` and can be used as a version number in a
-dependency and will be replaced by the fully-qualified scala version for this build (e.g. ``'2.12.1'``). This is
+dependency. It will be replaced by the fully-qualified scala version for this build (e.g. ``'2.12.1'``). This is
 typically used when declaring your scala-library dependency::
 
     compile "org.scala-lang:scala-library:scala-version"
@@ -74,62 +76,89 @@ you'll end up with the suffix appended twice.
 Advanced Configuration
 ----------------------
 
-You can configure some further aspects of the plugin via its configuration extension in your ``build.gradle`` file::
+The only required configuration is to set the ``scalaVersions`` property. If this is the only property provided, then
+build tasks will be run for all scala versions listed. In some cases, this may not be a desirable default (for example
+during development if your build takes some time to execute). If you prefer, you can also set ``defaultScalaVersions``
+(it's a comma-separated list) in your ``gradle.properties`` file to set which scala versions will be run by default.
+Then, if you want to override the default and build for all versions (e.g. on your CI server), you can set the
+``allScalaVersions`` parameter, typically from the command line (``-PallScalaVersions``).
+
+You can also configure the placeholder values if they happen to cause a conflict, or you just like something else
+aesthetically. To do so, add the following block in your ``build.gradle`` file::
 
     scalaMultiVersion {
         scalaVersionPlaceholder = "scala-version"
         scalaSuffixPlaceholder = "_%%"
-        buildTasks = ['build']
     }
 
 ============================  =============  ====================  =====================================================
 Property                      Type           Default               Description
 ============================  =============  ====================  =====================================================
 ``scalaVersionPlaceholder``   String         ``'scala-version'``   The placeholder used in dependency versions to be
-                                                                   replaced the full scala version (e.g. ``'2.12.8'``)
+                                                                   replaced by the full scala version (e.g. 
+                                                                   ``'2.12.8'``)
 ``scalaSuffixPlaceholder``    String         ``'_%%'``             The placeholder used in dependency module names to be
                                                                    replaced by the scala suffix (e.g. ``'_2.12'``)
-``buildTasks``                List<String>   ``['build']``         The task(s) used to build your complete project. Will
-                                                                   be run once for each scala version specified.
 ============================  =============  ====================  =====================================================
-
-The ``buildTasks`` value can also be set (or overridden) by setting a project property with the same
-name. This is useful, for example, to change the tasks that will be run from the command line (see
-Examples_).
 
 Usage
 =====
 
-This plugin will add a number of tasks and properties to your project. The most important of these is the task
-``buildMultiVersion``. This will build your project once for each version of scala indicated in the ``scalaVersions``
-property (see `Setting Scala Versions`_). It also adds individual build tasks for each version of scala named
-``build_<scala-version>`` (e.g., ``build_2.12.1``). These can be used to build a single particular version (must be
-listed in ``scalaVersions``, of course). A simple ``gradle build`` will use whichever version of scala is listed first
-in ``scalaVersions``.
+Just run gradle as usual. Any tasks you specify on the command line will be run once for each scala version selected
+(see section `Advanced Configuration`_ for details).
 
 Also potentially useful to your buildscript are several extra properties this plugin attaches to your project:
 
 ==================  =============  =====================================================================================
 Property            Type           Description
 ==================  =============  =====================================================================================
-``scalaVersions``   List<String>   The list originally specified as a comma-separated string gets turned into an actual
-                                   List<String>. E.g., ``['2.12.1', '2.11.8']``
-``scalaSuffixes``   List<String>   The suffixes corresponding to each scala version listed. E.g. ``['_2.12', '_2.11']``.
 ``scalaVersion``    String         The scala version that will be used for *this* build. E.g. ``'2.12.1'``.
 ``scalaSuffix``     String         The scala suffix that will be used for *this* build. E.g. ``'_2.12'``.
 ==================  =============  =====================================================================================
 
+These could be useful, for example, if you wish to select a different dependency based on the scala version. For
+example::
+
+    dependencies {
+      if(scalaVersion.startsWith("2.12")) {
+        compile "org.whatever:some-dependency:1.2.3"
+      } else {
+        compile "org.whatever:some-other-dependency:1.2.3"
+      }
+    }
+
 Examples
 --------
 
-Build the default version::
-    ``gradle build``
-Build a non-default version::
-    ``gradle build_2.12.1``
-Build all versions::
-    ``gradle buildMultiVersion``
-Build and publish all versions::
-    ``gradle buildMultiVersion -PbuildTasks=build,uploadArchives``
+Run All Versions by Default
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To run your tasks for all scala versions by default, you would create a ``gradle.properties`` file that only contains
+``scalaVersions``::
+
+    scalaVersions = 2.11.8, 2.12.1
+
+Then you could run tasks like this...
+
+* Build all versions: ``gradle build``
+* Build one particular version: ``gradle build -PscalaVersions=2.12.1``
+
+Run a Single Version by Default
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you don't want to build for all versions by default, set ``defaultScalaVersions`` in addition to ``scalaVersions`` in
+your ``gradle.properties`` file::
+
+    scalaVersions = 2.11.8, 2.12.1
+    defaultScalaVersions = 2.12.1
+
+Then run tasks like this...
+
+* Build the default version (2.12.1): ``gradle build``
+* Build all versions: ``gradle build -PallScalaVersions``
+* Build a single version other than the default (a little strange, I know, but it works):
+
+  ``gradle build -PdefaultScalaVersions=2.11.8``
 
 Known Limitations
 =================
@@ -142,9 +171,11 @@ work as you expect today.
 License
 =======
 
-This project is licensed under the Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0).
+This project is licensed under the Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0). Copyright
+2017, ADTRAN, Inc.
 
 Contributing
 ============
 
 Issues and pull requests are welcome if you have bugs/suggestions/improvements!
+
