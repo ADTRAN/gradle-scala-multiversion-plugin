@@ -5,7 +5,7 @@ Scala Multi-Version Plugin
 This Gradle plugin allows a project to build against multiple versions of scala. You declare a list of scala versions
 via a project property (e.g. ``scalaVersions = 2.12.1, 2.11.8``), and then declare dependencies like this::
 
-    compile "org.scala-lang:scala-library:scala-version"
+    compile "org.scala-lang:scala-library:%scala-version%"
     compile "org.scala-lang.modules:scala-parser-combinators_%%:1.0.4"
 
 Now when you run gradle tasks, they'll run once for each scala version. If you wish, you can also control which scala
@@ -52,11 +52,11 @@ Updating Dependencies
 ---------------------
 
 The plugin allows you to use two different placeholders when declaring your dependencies which will then be substituted
-with actual values before being resolved. The first is ``scala-version`` and can be used as a version number in a
+with actual values before being resolved. The first is ``%scala-version%`` and can be used as a version number in a
 dependency. It will be replaced by the fully-qualified scala version for this build (e.g. ``'2.12.1'``). This is
 typically used when declaring your scala-library dependency::
 
-    compile "org.scala-lang:scala-library:scala-version"
+    compile "org.scala-lang:scala-library:%scala-version%"
 
 The second placeholder is ``_%%`` and can be used in a dependency module name to stand for the scala "suffix"
 corresponding to this scala version (e.g. ``'_2.12'``). For example::
@@ -87,19 +87,19 @@ You can also configure the placeholder values if they happen to cause a conflict
 aesthetically. To do so, add the following block in your ``build.gradle`` file::
 
     scalaMultiVersion {
-        scalaVersionPlaceholder = "scala-version"
+        scalaVersionPlaceholder = "%scala-version%"
         scalaSuffixPlaceholder = "_%%"
     }
 
-============================  =============  ====================  =====================================================
-Property                      Type           Default               Description
-============================  =============  ====================  =====================================================
-``scalaVersionPlaceholder``   String         ``'scala-version'``   The placeholder used in dependency versions to be
-                                                                   replaced by the full scala version (e.g. 
-                                                                   ``'2.12.8'``)
-``scalaSuffixPlaceholder``    String         ``'_%%'``             The placeholder used in dependency module names to be
-                                                                   replaced by the scala suffix (e.g. ``'_2.12'``)
-============================  =============  ====================  =====================================================
+============================  =============  ======================  ===================================================
+Property                      Type           Default                 Description
+============================  =============  ======================  ===================================================
+``scalaVersionPlaceholder``   String         ``'%scala-version%'``   The placeholder used in dependency versions to be
+                                                                     replaced by the full scala version (e.g.
+                                                                     ``'2.12.8'``)
+``scalaSuffixPlaceholder``    String         ``'_%%'``               The placeholder used in dependency module names to
+                                                                     be replaced by the scala suffix (e.g. ``'_2.12'``)
+============================  =============  ======================  ===================================================
 
 Usage
 =====

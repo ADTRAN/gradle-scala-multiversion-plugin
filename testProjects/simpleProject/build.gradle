@@ -32,7 +32,7 @@ repositories {
 }
 
 dependencies {
-    compile "org.scala-lang:scala-library:scala-version"
+    compile "org.scala-lang:scala-library:%scala-version%"
     compile "org.fake:fake-scala-dep_%%:1.2.3"
     compile "org.fake:fake-java-dep:1.2.3"
 }
