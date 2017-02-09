@@ -18,12 +18,17 @@ package com.adtran
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.artifacts.Configuration
+import org.gradle.api.XmlProvider
 import org.gradle.api.artifacts.DependencyResolveDetails
-import org.gradle.api.tasks.GradleBuild
-import org.gradle.api.tasks.bundling.Jar
-import org.gradle.api.tasks.StopExecutionException
+import org.gradle.api.artifacts.component.ModuleComponentSelector
+import org.gradle.api.artifacts.maven.MavenResolver
+import org.gradle.api.artifacts.result.ResolvedDependencyResult
 import org.gradle.api.plugins.ExtraPropertiesExtension.UnknownPropertyException
+import org.gradle.api.plugins.JavaBasePlugin
+import org.gradle.api.publish.maven.MavenPublication
+import org.gradle.api.tasks.GradleBuild
+import org.gradle.api.tasks.Upload
+import org.gradle.api.tasks.bundling.Jar
 
 class ScalaMultiVersionPlugin implements Plugin<Project> {
     private Project project
@@ -35,6 +40,7 @@ class ScalaMultiVersionPlugin implements Plugin<Project> {
         setResolutionStrategy()
         addTasks()
         addSuffixToJars()
+        resolvePomDependencies()
     }
 
     private void setExtension() {
@@ -139,4 +145,70 @@ class ScalaMultiVersionPlugin implements Plugin<Project> {
             }
         }
     }
+
+    // Logic for the following function was adapted from nebula-publish-plugin. See NOTICE for
+    // details.
+    private void resolveMavenPomDependencies(XmlProvider xml) {
+        project.plugins.withType(JavaBasePlugin) {
+            def dependencies = xml.asNode()?.dependencies?.dependency
+            def dependencyMap = [:]
+
+            dependencyMap['compile'] =
+                project.configurations.compile.incoming.resolutionResult.allDependencies
+            dependencyMap['runtime'] =
+                project.configurations.runtime.incoming.resolutionResult.allDependencies
+            dependencyMap['test'] =
+                project.configurations.testRuntime.incoming.resolutionResult.allDependencies
+            dependencies?.each { Node dep ->
+                def group = dep.groupId.text()
+                def name = dep.artifactId.text()
+                def scope = dep.scope.text()
+
+                if (scope == 'provided') {
+                    scope = 'runtime'
+                }
+
+                ResolvedDependencyResult resolved = dependencyMap[scope].find { r ->
+                    (r.requested instanceof ModuleComponentSelector) &&
+                            (r.requested.group == group) &&
+                            (r.requested.module == name)
+                }
+
+                if (!resolved) {
+                    return  // continue loop if a dependency is not found in dependencyMap
+                }
+
+                def versionNode = dep.version
+                if (!versionNode) {
+                    dep.appendNode('version')
+                }
+                def moduleVersion = resolved.selected.moduleVersion
+                dep.groupId[0].value = moduleVersion.group
+                dep.artifactId[0].value = moduleVersion.name
+                dep.version[0].value = moduleVersion.version
+            }
+        }
+    }
+
+    private void resolvePomDependencies() {
+        project.afterEvaluate {
+            // for projects using the maven plugin
+            project.tasks.withType(Upload).collectMany {
+                it.repositories.withType(MavenResolver)
+            }.each { resolver ->
+                def poms = resolver.activePomFilters.collect { filter ->
+                    (filter.name == "default") ? resolver.pom : resolver.pom(filter.name)
+                }
+                poms.each { pom -> pom.withXml { resolveMavenPomDependencies(it) } }
+            }
+            // for projects using the maven-publish plugin
+            if (project.plugins.hasPlugin("maven-publish")) {
+                project.publishing.publications.withType(MavenPublication) {
+                    pom.withXml { resolveMavenPomDependencies(it) }
+                    artifactId += project.ext.scalaSuffix
+                }
+            }
+        }
+    }
+
 }

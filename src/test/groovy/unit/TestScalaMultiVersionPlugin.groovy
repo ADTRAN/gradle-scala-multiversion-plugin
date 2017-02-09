@@ -17,25 +17,22 @@ package unit
 
 import com.adtran.ScalaMultiVersionPlugin
 import com.adtran.ScalaMultiVersionPluginExtension
-import org.gradle.api.DefaultTask
+import common.SimpleProjectTest
 import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.tasks.GradleBuild
 import org.gradle.testfixtures.ProjectBuilder
 
-class TestScalaMultiVersionPlugin extends GroovyTestCase {
+class TestScalaMultiVersionPlugin extends GroovyTestCase implements SimpleProjectTest {
 
-    private Project createProject(
-            String scalaVersions,
-            ScalaMultiVersionPluginExtension extension = new ScalaMultiVersionPluginExtension(),
-            Map<String,String> properties = [:])
+    private Project createProject(String scalaVersions, Closure config = {})
     {
         Project project = ProjectBuilder.builder()
                 .withProjectDir(new File(System.getProperty("user.dir"), "testProjects/simpleProject"))
                 .build()
         project.ext.scalaVersions = scalaVersions
-        project.ext.scalaMultiVersion = extension
-        properties.each { k,v -> project.ext.set(k, v) }
+        config.delegate = project
+        config(project)
         project.pluginManager.apply(ScalaMultiVersionPlugin)
         project.evaluate()
         return project
@@ -78,7 +75,9 @@ class TestScalaMultiVersionPlugin extends GroovyTestCase {
         ].each {
             def (ver, error_msg) = it
             def msg = shouldFailWithCause(GradleException) {
-                def project = createProject("2.12.1", new ScalaMultiVersionPluginExtension(), ["defaultScalaVersions":ver])
+                def project = createProject("2.12.1") {
+                    ext.defaultScalaVersions = ver
+                }
                 project.ext.defaultScalaVersions
             }
             assert msg.contains(error_msg)
@@ -104,16 +103,17 @@ class TestScalaMultiVersionPlugin extends GroovyTestCase {
     }
 
     void testDefaultScalaVersions() {
-        def project = createProject( "2.12.1,2.11.8",
-                                     new ScalaMultiVersionPluginExtension(),
-                                     ["defaultScalaVersions":"2.11.8"] )
+        def project = createProject("2.12.1,2.11.8") {
+             ext.defaultScalaVersions = "2.11.8"
+        }
         assert project.ext.scalaVersion == "2.11.8"
     }
 
     void testAllScalaVersions() {
-        def project = createProject( "2.12.1,2.11.8",
-                                     new ScalaMultiVersionPluginExtension(),
-                                     ["defaultScalaVersions":"2.11.8", "allScalaVersions":true] )
+        def project = createProject("2.12.1,2.11.8") {
+            ext.defaultScalaVersions = "2.11.8"
+            ext.allScalaVersions = true
+        }
         assert project.ext.scalaVersion == "2.12.1"
         assert project.gradle.startParameter.taskNames == [":recurseWithScalaVersion_2.11.8"]
     }
@@ -129,14 +129,32 @@ class TestScalaMultiVersionPlugin extends GroovyTestCase {
     }
 
     void testExtension() {
-        def extension = new ScalaMultiVersionPluginExtension(
+        def project = createProject("2.12.1") {
+            ext.scalaMultiVersion = new ScalaMultiVersionPluginExtension(
                 scalaVersionPlaceholder: "<<sv>>",
                 scalaSuffixPlaceholder: "_##"
-        )
-        def project = createProject("2.12.1", extension)
+            )
+        }
         def conf = project.configurations.getByName("compile").resolvedConfiguration.lenientConfiguration
         assert conf.unresolvedModuleDependencies.size() == 2
         assert conf.getAllModuleDependencies().size() == 1
+    }
+
+    void testMavenPom() {
+        def project = createProject("2.12.1") {
+            plugins.apply("maven")
+            tasks.uploadArchives.repositories.mavenDeployer {
+                repository(url: "dummyUrl")
+            }
+        }
+        def pomXml = new StringWriter()
+        project.tasks.uploadArchives.repositories[0].pom.writeTo(pomXml)
+        pomXml = pomXml.toString()
+        assert !pomXml.contains("_%%")
+        assert !pomXml.contains("%scala_version%")
+        def root = new XmlSlurper().parseText(pomXml)
+        assert root.dependencies.'*'.find { it.artifactId == "scala-library" }.version.text() == '2.12.1'
+        assert root.dependencies.'*'.find { it.artifactId == "fake-scala-dep_2.12" } != null
     }
 
 }

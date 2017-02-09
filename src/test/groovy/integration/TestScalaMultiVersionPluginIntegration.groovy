@@ -15,29 +15,11 @@
  */
 package integration
 
-import org.gradle.testkit.runner.BuildResult
+import common.SimpleProjectTest
 import org.gradle.testkit.runner.GradleRunner
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
-class TestScalaMultiVersionPlugin extends GroovyTestCase {
-    def projectDir = new File(System.getProperty("user.dir"), "testProjects/simpleProject")
-    def buildDir = new File(projectDir, "build")
-
-    def pluginClasspathResource = getClass().classLoader.findResource("plugin-classpath.txt")
-
-    void setUp() {
-        if(buildDir.exists()) buildDir.deleteDir()
-        // write the plugin classpath to a file where the test project can find it. This is
-        // the best workaround I could find for keeping the plugin under test on the classpath given
-        // the recursive nature of the builds.
-        buildDir.mkdirs()
-        new File(buildDir, "plugin-classpath.txt").text = pluginClasspathResource.text
-    }
-
-    void tearDown() {
-        setUp()
-    }
-
+class TestScalaMultiVersionPlugin extends GroovyTestCase implements SimpleProjectTest {
     void testOneTaskOneVersion() {
         def result = GradleRunner.create()
             .withProjectDir(projectDir)
@@ -113,6 +95,20 @@ class TestScalaMultiVersionPlugin extends GroovyTestCase {
         assert result.output.contains("t1 1.1.1")
         assert result.output.contains("t1 2.2.2")
         assert result.output.contains("t1 3.3.3")
+    }
+
+    void testMavenPublishPom() {
+        def result = GradleRunner.create()
+            .withProjectDir(projectDir)
+            .withArguments("generatePomFileForMavenPublication", "-PscalaVersions=2.12.1")
+            .build()
+        def pomXml = new File(projectDir, "build/publications/maven/pom-default.xml").text
+        assert !pomXml.contains("_%%")
+        assert !pomXml.contains("%scala_version%")
+        def root = new XmlSlurper().parseText(pomXml)
+        assert root.dependencies.'*'.find { it.artifactId == "scala-library" }.version.text() == '2.12.1'
+        assert root.dependencies.'*'.find { it.artifactId == "fake-scala-dep_2.12" } != null
+        assert root.artifactId.text() == "codeProject_2.12"
     }
 
 }

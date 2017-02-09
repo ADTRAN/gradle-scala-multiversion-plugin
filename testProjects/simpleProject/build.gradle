@@ -24,6 +24,7 @@ buildscript {
 apply plugin: "scala"
 apply plugin: "java"
 apply plugin: "com.adtran.scala-multiversion-plugin"
+apply plugin: "maven-publish"
 
 repositories {
     flatDir {
@@ -39,3 +40,8 @@ dependencies {
 
 task t1() << { println "t1 $project.scalaVersion" }
 task t2() << { println "t2 $project.scalaVersion" }
+
+publishing.publications {
+    maven(MavenPublication).from(components.java)
+}
+
