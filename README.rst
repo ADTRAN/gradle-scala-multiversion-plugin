@@ -32,8 +32,6 @@ Then apply the plugin using either the old style::
       id "com.adtran.scala-multiversion-plugin"
     }
 
-Note that if applying this plugin to a multi-project build, it should be applied only to the root project.
-
 Setting Scala Versions
 ----------------------
 

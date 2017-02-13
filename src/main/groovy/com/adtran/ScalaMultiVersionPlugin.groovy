@@ -97,10 +97,8 @@ class ScalaMultiVersionPlugin implements Plugin<Project> {
     }
 
     private void setResolutionStrategy() {
-        project.allprojects { p ->
-            p.configurations.all { conf ->
-                conf.resolutionStrategy.eachDependency { replaceScalaVersions(it) }
-            }
+        project.configurations.all { conf ->
+            conf.resolutionStrategy.eachDependency { replaceScalaVersions(it) }
         }
     }
 
@@ -122,7 +120,7 @@ class ScalaMultiVersionPlugin implements Plugin<Project> {
 
     private void addTasks() {
         def recurseScalaVersions = determineScalaVersions()
-        if (!project.ext.has("recursed")) {
+        if (!project.ext.has("recursed") && !project.gradle.ext.has("recursionTaskAdded")) {
             def buildVersionTasks = recurseScalaVersions.collect { ver ->
                 project.tasks.create("recurseWithScalaVersion_$ver", GradleBuild) {
                     startParameter = project.gradle.startParameter.newInstance()
@@ -133,15 +131,14 @@ class ScalaMultiVersionPlugin implements Plugin<Project> {
             }
             def tasksToAdd = buildVersionTasks.collect{ it.path }
             project.gradle.startParameter.taskNames += tasksToAdd
+            project.gradle.ext.recursionTaskAdded = true
         }
     }
 
     private void addSuffixToJars() {
-        project.allprojects { p ->
-            p.afterEvaluate {
-                p.tasks.withType(Jar) { t ->
-                    t.baseName += p.rootProject.ext.scalaSuffix
-                }
+        project.afterEvaluate {
+            project.tasks.withType(Jar) { t ->
+                t.baseName += project.ext.scalaSuffix
             }
         }
     }
