@@ -21,6 +21,7 @@ import org.gradle.api.Project
 import org.gradle.api.XmlProvider
 import org.gradle.api.artifacts.DependencyResolveDetails
 import org.gradle.api.artifacts.component.ModuleComponentSelector
+import org.gradle.api.artifacts.component.ProjectComponentSelector
 import org.gradle.api.artifacts.maven.MavenResolver
 import org.gradle.api.artifacts.result.ResolvedDependencyResult
 import org.gradle.api.plugins.ExtraPropertiesExtension.UnknownPropertyException
@@ -165,24 +166,49 @@ class ScalaMultiVersionPlugin implements Plugin<Project> {
                     scope = 'runtime'
                 }
 
-                ResolvedDependencyResult resolved = dependencyMap[scope].find { r ->
+                def rewriteDepNode = { ResolvedDependencyResult r, boolean addSuffixToName ->
+                    def versionNode = dep.version
+                    if (!versionNode) {
+                        dep.appendNode('version')
+                    }
+                    def moduleVersion = r.selected.moduleVersion
+                    def suffix = addSuffixToName ? project.ext.scalaSuffix : ""
+                    dep.groupId[0].value = moduleVersion.group
+                    dep.artifactId[0].value = moduleVersion.name + suffix
+                    dep.version[0].value = moduleVersion.version
+                }
+
+                def matchesModuleComponent = { ResolvedDependencyResult r ->
                     (r.requested instanceof ModuleComponentSelector) &&
-                            (r.requested.group == group) &&
-                            (r.requested.module == name)
+                         (r.requested.group == group) &&
+                         (r.requested.module == name)
                 }
 
-                if (!resolved) {
-                    return  // continue loop if a dependency is not found in dependencyMap
+                def matchesProjectComponent = { ResolvedDependencyResult r ->
+                    if ( r.requested instanceof ProjectComponentSelector &&
+                         r.requested.projectPath.contains(name) )
+                    {
+                        def depProject = project.findProject(r.requested.projectPath)
+                        if (depProject && depProject.plugins.hasPlugin(this.class)) {
+                            return true
+                        }
+                    }
+                    return false
                 }
 
-                def versionNode = dep.version
-                if (!versionNode) {
-                    dep.appendNode('version')
+                def handleDep = { ResolvedDependencyResult r ->
+                    if (matchesModuleComponent(r)) {
+                        rewriteDepNode(r, false)
+                        return true
+                    } else if (matchesProjectComponent(r)) {
+                        rewriteDepNode(r, true)
+                        return true
+                    }
+                    return false
                 }
-                def moduleVersion = resolved.selected.moduleVersion
-                dep.groupId[0].value = moduleVersion.group
-                dep.artifactId[0].value = moduleVersion.name
-                dep.version[0].value = moduleVersion.version
+
+                dependencyMap[scope].find(handleDep)
+
             }
         }
     }
