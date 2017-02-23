@@ -66,7 +66,7 @@ class ScalaMultiVersionPlugin implements Plugin<Project> {
             if (firstInvalid != null) {
                 throw new GradleException(
                     "Invalid scala version '$firstInvalid' in '$propertyName' property. " +
-                    "Please specify full X.Y.Z scala versions in 'scalaVersions' property.")
+                    "Please specify full X.Y.Z scala versions.")
             }
             return versions
         } catch (NullPointerException | UnknownPropertyException e) {

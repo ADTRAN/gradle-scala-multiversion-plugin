@@ -32,6 +32,8 @@ Then apply the plugin using either the old style::
       id "com.adtran.scala-multiversion-plugin"
     }
 
+For multi-project builds, it is recommended to apply the plugin individually to each relevant project/subproject.
+
 Setting Scala Versions
 ----------------------
 
@@ -45,6 +47,9 @@ file::
 Although you could also set (or override) it via the command line::
 
     gradle build -PscalaVersions=2.12.1,2.11.8
+
+For multiproject builds, it is recommended that you set ``scalaVersions`` in your root ``gradle.properties``. Building
+subprojects for different versions of scala is not supported.
 
 Updating Dependencies
 ---------------------
@@ -161,10 +166,16 @@ Then run tasks like this...
 Known Limitations
 =================
 
-Because the artifacts are only differentiated by suffix and they all land in the same folder, if you try to list two
-versions in ``scalaVersions`` from the same major version (Scala uses <epoch>.<major>.<minor> versioning), the artifacts
-will overwrite each other and only the last one will survive. So for example ``scalaVersions = 2.11.1, 2.11.8`` won't
-work as you expect today.
+* Because the artifacts are only differentiated by suffix and they all land in the same folder, if you try to list two
+  versions in ``scalaVersions`` from the same major version (Scala uses <epoch>.<major>.<minor> versioning), the
+  artifacts will overwrite each other and only the last one will survive. So for example ``scalaVersions = 2.11.1,
+  2.11.8`` won't work as you expect today.
+
+* If you have a multi-project build that contains some sub-projects that apply this plugin along with others that
+  don't (for example, a mixed scala/java/other project), then tasks will potentially be unnecessarily run multiple times
+  (once for each scala version) on the non-multi-version projects. Besides unnecessarily increasing build times, this
+  could cause problem with non-idempotent tasks (like artifact uploading). The workaround is to run such tasks
+  separately and use command line flags as necessary to ensure that they only get run once.
 
 License
 =======
