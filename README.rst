@@ -163,6 +163,34 @@ Then run tasks like this...
 
   ``gradle build -PdefaultScalaVersions=2.11.8``
 
+Use with Composite Builds
+=========================
+
+Gradle 3.1 introduced `composite builds`_, which can be quite handy, especially when developing a library. Since this
+plugin is most useful for developing Scala libraries, it is helpful to note how this plugin interacts with composite
+builds.
+
+This plugin will cause the published artifact name to not match the project name (because it appends the scala suffix to
+it). That means that just using ``--include-build <path>`` to point to a project built with this plugin will not work.
+Instead, you must use the ``settings.gradle`` file to declare a dependency-substituion::
+
+    includeBuild('../my-scala-library') {
+        dependencySubstitution {
+            substitute module('org.sample:my-scala-library_2.12') with project(':')
+        }
+    }
+
+If both projects use this plugin, then you are likely declaring your dependency on the included build using the ``_%%``
+syntax. In this case, you need to use the same syntax in the substitution rule::
+
+    includeBuild('../my-scala-library') {
+        dependencySubstitution {
+            substitute module('org.sample:my-scala-library_%%') with project(':')
+        }
+    }
+
+.. _composite builds: https://docs.gradle.org/current/userguide/composite_builds.html
+
 Known Limitations
 =================
 
@@ -174,8 +202,15 @@ Known Limitations
 * If you have a multi-project build that contains some sub-projects that apply this plugin along with others that
   don't (for example, a mixed scala/java/other project), then tasks will potentially be unnecessarily run multiple times
   (once for each scala version) on the non-multi-version projects. Besides unnecessarily increasing build times, this
-  could cause problem with non-idempotent tasks (like artifact uploading). The workaround is to run such tasks
+  could cause problems with non-idempotent tasks (like artifact uploading). The workaround is to run such tasks
   separately and use command line flags as necessary to ensure that they only get run once.
+
+* POM files are modified only when using the `maven`_ or `maven-publish`_ plugins. Ivy publishing will work, but you'll
+  probably find that your POM files contain ``_%%`` and ``%scala-version%`` placeholders. Support for Ivy should be
+  straightforward to add. Pull requests are welcome!
+
+.. _maven: https://docs.gradle.org/current/userguide/maven_plugin.html
+.. _maven-publish: https://docs.gradle.org/current/userguide/publishing_maven.html
 
 License
 =======
