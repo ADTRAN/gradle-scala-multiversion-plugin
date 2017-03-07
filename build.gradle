@@ -28,7 +28,7 @@ buildscript {
 }
 
 plugins {
-    id "nebula.dependency-lock" version "4.3.2"
+    id "nebula.dependency-lock" version "4.9.1"
     id "net.saliman.cobertura" version "2.4.0"
     id "groovy"
     id "maven"
@@ -63,10 +63,7 @@ dependencies {
     compile localGroovy()
 
     testCompile 'junit:junit:4.12'
-
-    testRuntime "org.slf4j:slf4j-api:1.+"
 }
-
 
 uploadArchives {
     repositories.mavenDeployer {
@@ -78,12 +75,12 @@ uploadArchives {
             name "$artifact_group:$artifact_name"
             packaging 'jar'
             description 'Gradle plugin to build a project against multiple versions of scala'
-            url 'https://github.com/ADTRAN/gradle-scala-multiversion-plugin' // TODO: check when published
+            url 'https://github.com/ADTRAN/gradle-scala-multiversion-plugin'
 
             scm {
-                connection 'scm:git:https://github.com/ADTRAN/gradle-scala-multiversion-plugin.git' // TODO: check when published
-                developerConnection 'scm:git:ssh://git@github.com:ADTRAN/gradle-scala-multiversion-plugin.git' // TODO: check when published
-                url 'https://github.com/ADTRAN/gradle-scala-multiversion-plugin' // TODO: check when published
+                connection 'scm:git:https://github.com/ADTRAN/gradle-scala-multiversion-plugin.git'
+                developerConnection 'scm:git:ssh://git@github.com:ADTRAN/gradle-scala-multiversion-plugin.git'
+                url 'https://github.com/ADTRAN/gradle-scala-multiversion-plugin'
             }
 
             licenses {
