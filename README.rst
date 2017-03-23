@@ -1,3 +1,7 @@
+.. image:: https://api.bintray.com/packages/adtran/maven/scala-multiversion-plugin/images/download.svg
+  :target: https://bintray.com/adtran/maven/scala-multiversion-plugin/_latestVersion
+  :alt: download
+
 ==========================
 Scala Multi-Version Plugin
 ==========================
