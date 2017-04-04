@@ -24,6 +24,7 @@ buildscript {
     dependencies {
         classpath "com.netflix.nebula:gradle-dependency-lock-plugin:4.+"
         classpath "net.saliman:gradle-cobertura-plugin:2.+"
+        classpath "com.gradle.publish:plugin-publish-plugin:0.9.7"
     }
 }
 
@@ -33,6 +34,7 @@ plugins {
     id "groovy"
     id "maven"
     id "java-gradle-plugin"
+    id "com.gradle.plugin-publish" version "0.9.7"
 }
 
 group = artifact_group
@@ -48,6 +50,19 @@ gradlePlugin {
             implementationClass = "com.adtran.ScalaMultiVersionPlugin"
         }
     }
+}
+
+pluginBundle {
+    website = 'https://github.com/ADTRAN/gradle-scala-multiversion-plugin'
+        vcsUrl = 'https://github.com/ADTRAN/gradle-scala-multiversion-plugin'
+        description = 'Gradle plugin to build a project against multiple versions of scala'
+        tags = ['scala', 'versioning']
+        plugins {
+            scalaMultiVersionPlugin {
+                id = "${group}.${artifact_name}"
+                displayName = 'Scala Multi-Version Plugin'
+            }
+        }
 }
 
 dependencyLock {
