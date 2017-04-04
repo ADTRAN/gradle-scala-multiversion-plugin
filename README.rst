@@ -24,7 +24,14 @@ Adding the Plugin
 
 First, add the appropriate buildscript repository and dependency::
 
-    TODO: instructions for getting the plugin in the buildscript dependencies.
+    buildscript {
+      repositories {
+        mavenCentral()
+      }
+      dependencies {
+        classpath "com.adtran:scala-multiversion-plugin:1.+"
+      }
+    }
 
 Then apply the plugin using either the old style::
 
@@ -36,7 +43,11 @@ Then apply the plugin using either the old style::
       id "com.adtran.scala-multiversion-plugin"
     }
 
+It's also available via `plugins.gradle.org`_.
+
 For multi-project builds, it is recommended to apply the plugin individually to each relevant project/subproject.
+
+.. _plugins.gradle.org: https://plugins.gradle.org/plugin/com.adtran.scala-multiversion-plugin
 
 Setting Scala Versions
 ----------------------
