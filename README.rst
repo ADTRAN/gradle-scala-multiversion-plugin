@@ -16,6 +16,11 @@ Now when you run gradle tasks, they'll run once for each scala version. If you w
 versions get executed by default and override the default from the command line. Your jar file will also get the
 appropriate suffix added (e.g. ``my-project_2.12-1.2.3.jar``).
 
+There's also a blog post about the plugin here_.
+
+.. _here: https://www.adtran.com/index.php/blog/technology-blog/356-announcing-the-gradle-scala-multiversion-plugin
+
+
 Setup
 =====
 
