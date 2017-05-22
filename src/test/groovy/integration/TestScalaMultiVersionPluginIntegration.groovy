@@ -111,5 +111,18 @@ class TestScalaMultiVersionPlugin extends GroovyTestCase implements SimpleProjec
         assert root.artifactId.text() == "codeProject_2.12"
     }
 
+    void testRunOnceTasks() {
+        def result = GradleRunner.create()
+            .withProjectDir(projectDir)
+            .withArguments("t1", "t2", "-PscalaVersions=1.1.1,2.2.2", "-PrunOnceTasks=t2")
+            .build()
+        assert result.tasks.size() == 3
+        assert result.taskPaths(SUCCESS).containsAll(":t1", ":t2", ":recurseWithScalaVersion_2.2.2")
+        assert result.output.contains("t1 1.1.1")
+        assert result.output.contains("t1 2.2.2")
+        assert result.output.contains("t2 1.1.1")
+        assert !result.output.contains("t2 2.2.2")
+    }
+
 }
 

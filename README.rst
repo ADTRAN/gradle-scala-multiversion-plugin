@@ -106,6 +106,17 @@ during development if your build takes some time to execute). If you prefer, you
 Then, if you want to override the default and build for all versions (e.g. on your CI server), you can set the
 ``allScalaVersions`` parameter, typically from the command line (``-PallScalaVersions``).
 
+There are some tasks which should only be run once, even if multiple scala versions are being built. The "clean"
+task, for example would wipe out previously generated artifacts if it ran before every recursive build invocation.
+Also, if you have a multi-project build that contains some sub-projects that apply this plugin along with others that
+don't (for example, a mixed scala/java/other project), then tasks will potentially be unnecessarily run multiple times
+(once for each scala version) on the non-multi-version projects. Besides unnecessarily increasing build times, this
+could cause problems with non-idempotent tasks (like artifact uploading). For this reason, you may optionally set the
+``runOnceTasks`` property to a comma-separated list of task names/paths which should only be run once. If unset, the
+default is ``clean``. To specify, for example, that the ``uploadArtifacts`` tasks of the ``javaSubproject``
+project should only be run once, you would add ``runOnceTasks = clean, :javaSubproject:uploadArtifacts`` to your
+``gradle.properties`` file.
+
 You can also configure the placeholder values if they happen to cause a conflict, or you just like something else
 aesthetically. To do so, add the following block in your ``build.gradle`` file::
 
@@ -218,12 +229,6 @@ Known Limitations
   versions in ``scalaVersions`` from the same major version (Scala uses <epoch>.<major>.<minor> versioning), the
   artifacts will overwrite each other and only the last one will survive. So for example ``scalaVersions = 2.11.1,
   2.11.8`` won't work as you expect today.
-
-* If you have a multi-project build that contains some sub-projects that apply this plugin along with others that
-  don't (for example, a mixed scala/java/other project), then tasks will potentially be unnecessarily run multiple times
-  (once for each scala version) on the non-multi-version projects. Besides unnecessarily increasing build times, this
-  could cause problems with non-idempotent tasks (like artifact uploading). The workaround is to run such tasks
-  separately and use command line flags as necessary to ensure that they only get run once.
 
 * POM files are modified only when using the `maven`_ or `maven-publish`_ plugins. Ivy publishing will work, but you'll
   probably find that your POM files contain ``_%%`` and ``%scala-version%`` placeholders. Support for Ivy should be

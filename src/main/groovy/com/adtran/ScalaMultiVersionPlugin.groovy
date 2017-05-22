@@ -33,6 +33,7 @@ import org.gradle.api.tasks.bundling.Jar
 
 class ScalaMultiVersionPlugin implements Plugin<Project> {
     private Project project
+    private List<String> defaultRunOnceTasks = ["clean"]
 
     void apply(Project project) {
         this.project = project
@@ -120,20 +121,30 @@ class ScalaMultiVersionPlugin implements Plugin<Project> {
     }
 
     private void addTasks() {
-        def recurseScalaVersions = determineScalaVersions()
-        if (!project.ext.has("recursed") && !project.gradle.ext.has("recursionTaskAdded")) {
-            def buildVersionTasks = recurseScalaVersions.collect { ver ->
-                project.tasks.create("recurseWithScalaVersion_$ver", GradleBuild) {
-                    startParameter = project.gradle.startParameter.newInstance()
-                    startParameter.projectProperties["scalaVersion"] = ver
-                    startParameter.projectProperties["recursed"] = true
-                    tasks = project.gradle.startParameter.taskNames
+        project.afterEvaluate {
+            def recurseScalaVersions = determineScalaVersions()
+            if (!project.ext.has("recursed") && !project.gradle.ext.has("recursionTaskAdded")) {
+                def buildVersionTasks = recurseScalaVersions.collect { ver ->
+                    project.tasks.create("recurseWithScalaVersion_$ver", GradleBuild) {
+                        startParameter = project.gradle.startParameter.newInstance()
+                        startParameter.projectProperties["scalaVersion"] = ver
+                        startParameter.projectProperties["recursed"] = true
+                        startParameter.excludedTaskNames = getRunOnceTasks()
+                        tasks = project.gradle.startParameter.taskNames
+                    }
                 }
+                def tasksToAdd = buildVersionTasks.collect { it.path }
+                project.gradle.startParameter.taskNames += tasksToAdd
+                project.gradle.ext.recursionTaskAdded = true
             }
-            def tasksToAdd = buildVersionTasks.collect{ it.path }
-            project.gradle.startParameter.taskNames += tasksToAdd
-            project.gradle.ext.recursionTaskAdded = true
         }
+    }
+
+    private List<String> getRunOnceTasks() {
+        def runOnceTasks = defaultRunOnceTasks
+        if (project.ext.has("runOnceTasks"))
+            runOnceTasks = project.ext.runOnceTasks.split(",").collect{it.trim()}
+        runOnceTasks.findAll { project.tasks.findByPath(it) }
     }
 
     private void addSuffixToJars() {
