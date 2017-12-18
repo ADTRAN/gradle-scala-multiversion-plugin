@@ -121,8 +121,8 @@ class ScalaMultiVersionPlugin implements Plugin<Project> {
     }
 
     private void addTasks() {
+        def recurseScalaVersions = determineScalaVersions()
         project.afterEvaluate {
-            def recurseScalaVersions = determineScalaVersions()
             if (!project.ext.has("recursed") && !project.gradle.ext.has("recursionTaskAdded")) {
                 def buildVersionTasks = recurseScalaVersions.collect { ver ->
                     project.tasks.create("recurseWithScalaVersion_$ver", GradleBuild) {
