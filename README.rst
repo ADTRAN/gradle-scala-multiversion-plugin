@@ -1,6 +1,8 @@
 .. image:: https://api.bintray.com/packages/adtran/maven/scala-multiversion-plugin/images/download.svg
   :target: https://bintray.com/adtran/maven/scala-multiversion-plugin/_latestVersion
   :alt: download
+.. image:: https://travis-ci.org/ADTRAN/gradle-scala-multiversion-plugin.svg?branch=master
+    :target: https://travis-ci.org/ADTRAN/gradle-scala-multiversion-plugin
 
 ==========================
 Scala Multi-Version Plugin
