@@ -28,6 +28,7 @@ buildscript {
     }
 }
 
+
 plugins {
     id "nebula.dependency-lock" version "4.9.1"
     id "net.saliman.cobertura" version "2.4.0"
@@ -35,6 +36,8 @@ plugins {
     id "maven"
     id "java-gradle-plugin"
     id "com.gradle.plugin-publish" version "0.9.7"
+    id "com.jfrog.bintray" version "1.8.0"
+    id "maven-publish"
 }
 
 group = artifact_group
@@ -54,15 +57,15 @@ gradlePlugin {
 
 pluginBundle {
     website = 'https://github.com/ADTRAN/gradle-scala-multiversion-plugin'
-        vcsUrl = 'https://github.com/ADTRAN/gradle-scala-multiversion-plugin'
-        description = 'Gradle plugin to build a project against multiple versions of scala'
-        tags = ['scala', 'versioning']
-        plugins {
-            scalaMultiVersionPlugin {
-                id = "${group}.${artifact_name}"
-                displayName = 'Scala Multi-Version Plugin'
-            }
+    vcsUrl = 'https://github.com/ADTRAN/gradle-scala-multiversion-plugin'
+    description = 'Gradle plugin to build a project against multiple versions of scala'
+    tags = ['scala', 'versioning']
+    plugins {
+        scalaMultiVersionPlugin {
+            id = "${group}.${artifact_name}"
+            displayName = 'Scala Multi-Version Plugin'
         }
+    }
 }
 
 dependencyLock {
@@ -78,6 +81,30 @@ dependencies {
     compile localGroovy()
 
     testCompile 'junit:junit:4.12'
+}
+
+def pomConfig = {
+    scm {
+        connection 'scm:git:https://github.com/ADTRAN/gradle-scala-multiversion-plugin.git'
+        developerConnection 'scm:git:ssh://git@github.com:ADTRAN/gradle-scala-multiversion-plugin.git'
+        url 'https://github.com/ADTRAN/gradle-scala-multiversion-plugin'
+    }
+
+    licenses {
+        license {
+            name 'Apache License, Version 2.0'
+            url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+        }
+    }
+
+    developers {
+        developer {
+            name 'Nathan Alderson'
+            email 'nathan.alderson@adtran.com'
+            organization 'ADTRAN, Inc.'
+            organizationUrl 'http://www.adtran.com/'
+        }
+    }
 }
 
 uploadArchives {
@@ -112,6 +139,27 @@ uploadArchives {
                     organization 'ADTRAN, Inc.'
                     organizationUrl 'http://www.adtran.com/'
                 }
+            }
+        }
+    }
+}
+
+
+publishing {
+    publications {
+        mavenPublication(MavenPublication) {
+            from components.java
+            artifact sourcesJar
+            artifact javadocJar
+            groupId "$groupId"
+            artifactId 'gradle-scala-multiversion-plugin-publish-test'
+            version "$version"
+            pom.withXml {
+                def root = asNode()
+                root.appendNode('description', 'Gradle plugin to build a project against multiple versions of scala')
+                root.appendNode('name', "$artifact_group:$artifact_name")
+                root.appendNode('url', 'https://github.com/ADTRAN/gradle-scala-multiversion-plugin')
+                root.children().last() + pomConfig
             }
         }
     }
@@ -165,3 +213,36 @@ task createClasspathManifest {
 dependencies {
     testRuntime files(createClasspathManifest)
 }
+
+bintray {
+    user = System.getenv('BINTRAY_USER')
+    key = System.getenv('BINTRAY_KEY')
+    pkg {
+        repo = "maven"
+        name = 'scala-multiversion-plugin-publish-test'
+        userOrg = 'adtran'
+        licenses = ['Apache-2.0']
+        vcsUrl = 'https://github.com/ADTRAN/gradle-scala-multiversion-plugin.git'
+        websiteUrl = 'https://github.com/ADTRAN/gradle-scala-multiversion-plugin.git'
+        issueTrackerUrl = 'https://github.com/ADTRAN/gradle-scala-multiversion-plugin/issues'
+        labels = ['gradle', 'scala']
+        publications = ['mavenPublication']
+        publish = true
+        version {
+          attributes = [
+            'gradle-scala-multiversion-plugin': 'com.adtran.gradle-scala-multiversion-plugin:com.adtran:gradle-scala-multiversion-plugin'
+          ]
+          gpg {
+              sign = System.env['GPG_PASS'] != null ? true : false
+              passphrase = System.getenv('GPG_PASS') //Optional. The passphrase for GPG signing'
+          }
+          mavenCentralSync {
+              sync = System.env['MAVEN_SYNC'] != null ? true : false
+              user = System.getenv('MAVEN_USER')
+              password = System.getenv('MAVEN_PASS')
+          }
+        }
+    }
+}
+
+
