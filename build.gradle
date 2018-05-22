@@ -152,7 +152,7 @@ publishing {
             artifact sourcesJar
             artifact javadocJar
             groupId "$groupId"
-            artifactId 'gradle-scala-multiversion-plugin-publish-test'
+            artifactId 'gradle-scala-multiversion-plugin'
             version "$version"
             pom.withXml {
                 def root = asNode()
@@ -219,7 +219,7 @@ bintray {
     key = System.getenv('BINTRAY_KEY')
     pkg {
         repo = "maven"
-        name = 'scala-multiversion-plugin-publish-test'
+        name = 'scala-multiversion-plugin'
         userOrg = 'adtran'
         licenses = ['Apache-2.0']
         vcsUrl = 'https://github.com/ADTRAN/gradle-scala-multiversion-plugin.git'
