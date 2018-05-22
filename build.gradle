@@ -38,10 +38,10 @@ plugins {
     id "com.gradle.plugin-publish" version "0.9.7"
     id "com.jfrog.bintray" version "1.8.0"
     id "maven-publish"
+    id "de.gliderpilot.semantic-release" version "1.4.0"
 }
 
 group = artifact_group
-version = "${artifact_version}.${build_number}"
 
 sourceCompatibility = 1.6
 targetCompatibility = 1.6
@@ -246,3 +246,12 @@ bintray {
 }
 
 
+project.ext.ghToken = project.hasProperty('ghToken') ? project.getProperty('ghToken') : System.getenv('GH_TOKEN') ?: null
+semanticRelease {
+    repo {
+        ghToken = project.ghToken
+        releaseAsset jar
+        releaseAsset sourcesJar, name: "sources.jar", label: 'sources jar', contentType: 'application/zip'
+        releaseAsset sourcesJar, name: "javadoc.jar", label: 'javadoc jar', contentType: 'application/zip'
+    }
+}
