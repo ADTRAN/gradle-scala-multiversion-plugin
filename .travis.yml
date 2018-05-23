@@ -2,7 +2,7 @@ language: java
 jdk:
   - openjdk8
 before_install:
-  - git fetch --unshallow
+  - git fetch --unshallow || true
   - git config user.email "delivery@adtran.com"
   - git config user.name "adtran-automation"
   - git config url.https://.insteadOf git://
