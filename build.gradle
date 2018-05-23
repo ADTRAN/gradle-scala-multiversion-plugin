@@ -114,7 +114,7 @@ publishing {
             artifact sourcesJar
             artifact javadocJar
             groupId "$groupId"
-            artifactId 'gradle-scala-multiversion-plugin'
+            artifactId 'scala-multiversion-plugin'
             version "$version"
             pom.withXml {
                 def root = asNode()
@@ -189,7 +189,7 @@ bintray {
         issueTrackerUrl = 'https://github.com/ADTRAN/gradle-scala-multiversion-plugin/issues'
         labels = ['gradle', 'scala', 'versioning']
         publications = ['mavenPublication']
-        publish = false
+        publish = true
         version {
           name = "${project.version}"
           vcsTag = "${project.version}"
@@ -199,7 +199,7 @@ bintray {
           ]
           gpg {
               sign = true
-              passphrase = System.getenv('GPG_PASS') //Optional. The passphrase for GPG signing'
+              passphrase = System.getenv('GPG_PASS')
           }
           mavenCentralSync {
               sync = System.env['MAVEN_SYNC']?.toBoolean() ?: false
