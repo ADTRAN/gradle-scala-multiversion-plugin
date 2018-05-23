@@ -198,7 +198,7 @@ bintray {
             'gradle-plugin': 'com.adtran.betablocker-plugin:com.adtran:scala-multiversion-plugin'
           ]
           gpg {
-              sign = System.env['GPG_PASS'] != null ? true : false
+              sign = true
               passphrase = System.getenv('GPG_PASS') //Optional. The passphrase for GPG signing'
           }
           mavenCentralSync {
