@@ -255,3 +255,5 @@ semanticRelease {
         releaseAsset sourcesJar, name: "javadoc.jar", label: 'javadoc jar', contentType: 'application/zip'
     }
 }
+
+publish.dependsOn publishPlugins, bintrayUpload

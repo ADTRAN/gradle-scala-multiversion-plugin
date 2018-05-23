@@ -5,7 +5,7 @@ before_install:
   - git fetch --unshallow
   - git config user.email "delivery@adtran.com"
   - git config user.name "adtran-automation"
-  - git config url.https://github.com/ADTRAN/gradle-scala-multiversion-plugin
+  - git config url.https://.insteadOf git://
   - git checkout -qf $TRAVIS_BRANCH
 script: "./gradlew -Pbuild_number=$TRAVIS_BUILD_NUMBER build cobertura"
 deploy:
