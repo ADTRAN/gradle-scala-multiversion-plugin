@@ -233,7 +233,7 @@ bintray {
           vcsTag = "${project.version}"
           released = new Date()
           attributes = [
-            'gradle-plugin': 'com.adtran.gradle-scala-multiversion-plugin:com.adtran:gradle-scala-multiversion-plugin'
+            'gradle-plugin': 'com.adtran.betablocker-plugin:com.adtran:scala-multiversion-plugin'
           ]
           gpg {
               sign = System.env['GPG_PASS'] != null ? true : false
