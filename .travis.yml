@@ -7,16 +7,16 @@ before_install:
   - git config user.name "adtran-automation"
   - git config url.https://.insteadOf git://
   - git checkout -qf $TRAVIS_BRANCH
+
 install:
   - echo "skip default gradlew assemble"
-jobs:
-  include:
-    - stage: build
-      if: branch != master
-      script: ./gradlew build cobertura -Dorg.ajoberstar.grgit.auth.username=${GH_TOKEN} -Dorg.ajoberstar.grgit.auth.password
-    - stage: release
-      if: branch = master
-      script: ./gradlew release cobertura -Dorg.ajoberstar.grgit.auth.username=${GH_TOKEN} -Dorg.ajoberstar.grgit.auth.password
+script: ./gradlew build cobertura -Dorg.ajoberstar.grgit.auth.username=${GH_TOKEN} -Dorg.ajoberstar.grgit.auth.password
+deploy:
+  provider: script
+  script: ./gradlew release -Dorg.ajoberstar.grgit.auth.username=${GH_TOKEN} -Dorg.ajoberstar.grgit.auth.password
+  skip_cleanup: true
+  on:
+    branch: master
 env:
   global:
   - TERM=dumb
