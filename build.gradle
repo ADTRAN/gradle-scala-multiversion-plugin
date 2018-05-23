@@ -217,7 +217,7 @@ semanticRelease {
         ghToken = project.ghToken
         releaseAsset jar
         releaseAsset sourcesJar, name: "sources.jar", label: 'sources jar', contentType: 'application/zip'
-        releaseAsset sourcesJar, name: "javadoc.jar", label: 'javadoc jar', contentType: 'application/zip'
+        releaseAsset javadocJar, name: "javadoc.jar", label: 'javadoc jar', contentType: 'application/zip'
     }
 }
 
