@@ -107,44 +107,6 @@ def pomConfig = {
     }
 }
 
-/**
-uploadArchives {
-    repositories.mavenDeployer {
-        repository(url: repo_url) {
-            authentication(userName: repo_username, password: repo_password)
-        }
-
-        pom.project {
-            name "$artifact_group:$artifact_name"
-            packaging 'jar'
-            description 'Gradle plugin to build a project against multiple versions of scala'
-            url 'https://github.com/ADTRAN/gradle-scala-multiversion-plugin'
-
-            scm {
-                connection 'scm:git:https://github.com/ADTRAN/gradle-scala-multiversion-plugin.git'
-                developerConnection 'scm:git:ssh://git@github.com:ADTRAN/gradle-scala-multiversion-plugin.git'
-                url 'https://github.com/ADTRAN/gradle-scala-multiversion-plugin'
-            }
-
-            licenses {
-                license {
-                    name 'Apache License, Version 2.0'
-                    url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-                }
-            }
-
-            developers {
-                developer {
-                    name 'Nathan Alderson'
-                    email 'nathan.alderson@adtran.com'
-                    organization 'ADTRAN, Inc.'
-                    organizationUrl 'http://www.adtran.com/'
-                }
-            }
-        }
-    }
-}*/
-
 publishing {
     publications {
         mavenPublication(MavenPublication) {
