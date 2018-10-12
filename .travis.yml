@@ -1,19 +1,19 @@
 language: java
 jdk:
-  - openjdk8
+- openjdk8
 before_install:
-  - git fetch --unshallow || true
-  - git config user.email "delivery@adtran.com"
-  - git config user.name "adtran-automation"
-  - git config url.https://.insteadOf git://
-  - git checkout -qf $TRAVIS_BRANCH
-
+- git fetch --unshallow || true
+- git config user.email "delivery@adtran.com"
+- git config user.name "adtran-automation"
+- git config url.https://.insteadOf git://
+- git checkout -qf $TRAVIS_BRANCH
 install:
-  - echo "skip default gradlew assemble"
-script: ./gradlew build cobertura -Dorg.ajoberstar.grgit.auth.username=${GH_TOKEN} -Dorg.ajoberstar.grgit.auth.password
+- echo "skip default gradlew assemble"
+script: "./gradlew build cobertura -Dorg.ajoberstar.grgit.auth.username=${GH_TOKEN}
+  -Dorg.ajoberstar.grgit.auth.password"
 deploy:
   provider: script
-  script: ./gradlew release -Dorg.ajoberstar.grgit.auth.username=${GH_TOKEN} -Dorg.ajoberstar.grgit.auth.password
+  script: "./gradlew release -Dorg.ajoberstar.grgit.auth.username=${GH_TOKEN} -Dorg.ajoberstar.grgit.auth.password"
   skip_cleanup: true
   on:
     branch: master
@@ -27,6 +27,8 @@ env:
   - secure: ZAHcykw5c8SczSFeMuANqnzv4rvUvqMmVkRhf6Bk6E3N3RF5uXvPK7IkEWcAL5El9D/vCZ3BnkuTb/whNGaIOCMEizQ+57NWU4RHhnHsTS8h28fCX1t3cGNhdFs3XO88DxMu6DjxINwkVLvd7EBip4kKNf3MsiDjzR0UDleVf/Z9OixpnE4iUccGxw/YZ7r+7fS2SYpLA3rjQPMn2hTjzXou1+kSWAtlpkilpUtslkJ4llhetV6Sh2QmaTVVPkdj/8IvHAsspP+CVM1qi4OhlCtn1F1jbwZClUPK6iRso3oulp4kAz8DUcFA3nlTp7JGQEy1CViN27bWQoeChQD1DaYgejmB5RD3w2IbkNE7x64DUfzLlhOMWtveZ8heN1as3UymIjIMot3xpViX9sSeN/AK8S8SgHTiYCgysOqQUuC0f2nG1DvmNgapkSeyatT0ltIWOqaaIkOqwneSD7bCPb83txTzjevPWmBD13JHDL+B/Og0Vc4eLkvjSId7fB0kOZlEre5VCCQIZjXwQOHkcmc3g6m7XWxaA8H3ve1eE3ozdKLUR6DkhAyR+AAK0aWdkoOmrECOwdQZ58wI/5t2u9ONPf98jCEFPqpvfvAhLIJYd3soc1MiVm8d9pEMyNVh4c3iyGb3zsN7XXKNOogc36kaPUwTuBBTHiqomSGDomw=
   - secure: s+AiEMl7GBVHMEDlGiGtebSP/slI7EZZmkLE0Wrw/wCLiN2+ZrFhaep3Va0I0L9eVUd7bh8hoPngM55zof+fQD7vcJ550FyF/gItMOD8/nWxYr61k+bT4ipuud7canqEyUFy4HcNmp/MhSCzwHkVR1WkLvhdx7DpHgWh7Ufu7R6LCaQv+S50j6hCcEmzCCZlwuN8mM3ApdhzD+Zt3s1XzfOiMvC9Vn9cfHL7JKkfHLm4+EIsy74KyEHFp4yN3Q6SyNN11xoMu9iiUdFQl6bW0SqxhGc4hqNoOlS6k8B0iA+Pk961dA4VCNvDrU5siuj7m4dVuFiN3KOc/0BohqtxJI+oBUNFE2qnIfm/EYHcz5m0ApzEn0xkDRaYr02RjeJ1lYt73S4fpK//Z3qPoZEgnL43Pkv9W0qL5FhzP6SSs9uIx8oO6iOAJBXHaK29n5p2L+bx0vCkqqelOLhC5FH41nBQWBIpymeOF+aeDwX/km8a5fP59H76hHvY/XdbjLUa9mNmIpw4MkJk/6Rd7uyxSjmJluE7z7UkZabCiFqol3aXgFKYgcwe7Yebqkpng7DiCQ+5fOyDmdqnEEGo1g/4LnKp2U13i3SSAJM9k9BH81nN7XlY1reeOREX7evk+AsjCTa27QU+jg2vNv50aBfPY4jaJRFvsDQYDBgy1f9R7t8=
   - secure: JMBfaYtsinNmZ6d5b3WkoyKXP76jGp0h/uIXZnRCqEXbPrxSBPxmc6LQhrMb+QIPF57D6F8pFaXmy9IomfIOByDwGxYCs/JrmJYrBZJBfyAqw6WzBs+5nX8xPzlDKBhIaro00VwxBXRPRcPHbWZQ47fzPpDK1QEOQgwHf8qClaOjn0FEM08TgEMGEnfd10TQY/cpS5ZtjROJWy7XxlD4YtayrMwaPkYG7v4kw20759+2RnOc+T7ehpACjLxRh+VmFrw+RZMsrNACMYcc22Kx2jQQzOg9lhQeLGVRT+r+hUpEOkIGGeWwh/F9TdC1h5424MtFHeWR6Xd3NHgA3w8N0tEx1jdM09RGw/d9K/WyZJixVyF70woJ0ARlSlyLz+Bxb8/HZQshd5WJbTJgCF42nijSEJDT0CaxlG5Y1F3WP40Mgi78KqMIVs2wIGUntApPHB7k3Xn941myigEM3G0y7ZpdNb0edo9gXd4JGbTYdckUuZIbZI6h4RMMJJTG1VrGT2sBGm4sacP7PEypIKFq9uIXVaDT2wkM5qW/QFdNrpq+VI3B/QkXePDEI3EuZqR5PhTWxXj0vLmQulB6UZ9gW3OkcbCvRspzGaNYj60PJVUIJlh6v5dl3A0WksCC3Jk10AtlAfOS08wURaaA/d2IsSFFEIWkiQBIw63O79nLgJg=
+  - secure: gJ2CgokdJdj5LOJK7zvSIt2h5D/g+SIJKsZgCPWgR/0MADCf6T4NoukOmrg3SZYMz8hW98gD40B2bAvE57EpBRHwWyEFHdK0vNF7f1dp7w33i2GXzKsMHtqTtm0Q+QiJRFnvJGVqIdFEVgU3xutg35UjP0ZU4z8aMeUGYxbzrVq3BwJe4uN5hiRYCqiBMOQ7rQPc+plsXU976lOt0981uySiRuLC5ymHgZ65Z2V7TnXTwTRYW/HA9jGfmMD0UMYJIwVDkzJjSJ/F/XNms29lAP7x5uJN+WLl9CD9n3Udid0Dlgy8XLoMQkcbt0GfF3+d/vWqAJMwZgLrB8br0k9yCuHM8aD/G+hOOw4NeBO/cifnrKWBAq/aMkFp82yrWZ/hxmzGmoqqdriyTIEQPf3RQ5ZgkNFyp9vCdSpycJERbw9znKHD7n31upn9BOkKeP2+MkQuT6HAVcNzysCJ0vu5gRoAz+e8bWfMR4MybIGzLJgeM9nIpbOjMu9fT4kMuRiy/V8XqiH3CswQfqkOTb9WIqBAEm4Zm+poiWIRqVI42cWr3KtkO8mn8GM8g1OXHatS6Xi3sxdni9WU55TiycM1oVvB/vLDISJyA38/Buw2OM+Huk/bwGc5Q3vbHHypZtT72H4zI+bLfLq5BgX2a6nPt/vYiNJ9UhaDBnkAtAHCzeY=
+  - secure: FM5voGgN7ooZcWo0oxwk2qT6SOnzHCPAQj3vXDP7m0sqom5gClwZV8QrbXp+lTQoeJSMRzMlF7oQKipxl/SWPYSnZa8iQNsSGD4H5mvX7/5mvPxp/s8rUjdq7u5z8qYTFgCBtROCl5B9WZoGlsuvJeKwLvponjSqlWO8geiF3MIYn4Br35KxdPm66Kxp/G6SD9+gl7t6dog/gFY7WsS3PQid3CgLyA0tSMcGgk/AV/uw5/idbNyum3U4umJCxcWdRMeEnUc3oVPJkfE2dD43tArP68oIt7nvflo3PPXGSST9NQ4kyGFQJ4tcOsztb2JcJB07TGkXMuqlhuMYqMgEscso/Wk3pWTdQxulgMPuuP8JvJx5t5GNM98rwyCe4DbP50BkbcX6SjUBG14Lao1G53yIs9j4RNRssTyNLFW4F7gPV/YJplo/xty1WuZmyxByPgIJLQQsQ29EAHx5e9T7YDjZvKaWbtTK6TAd7IMNhRDi+TeVuO9wMIQVFLC8/lXUjzVa0xXM+Vbe4V5Fur2zsZ99dupkb6p37AYAhrM55ZTFA1mLyqoT5GaHQ7FsMk08Ex116CHYoWYSvO2INs9/OWj/LOWJpFfT1ZJrjqFxqIWX95e0joODnCGaXfMgPUjAsC6f58mkInQ10r7MmyRKXymgBOeCWkRw7ZrWfnnhVhs=
 branches:
   except:
   - "/^v\\d+\\.\\d+\\.\\d+$/"
