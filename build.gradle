@@ -222,6 +222,7 @@ semanticRelease {
 }
 
 publish.dependsOn bintrayUpload
+publish.dependsOn publishPlugins
 
 prepare.doFirst  {
   //We get grgit for free because we are using semantic-release
