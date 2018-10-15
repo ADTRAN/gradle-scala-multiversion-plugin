@@ -24,7 +24,7 @@ buildscript {
     dependencies {
         classpath "com.netflix.nebula:gradle-dependency-lock-plugin:4.+"
         classpath "net.saliman:gradle-cobertura-plugin:2.+"
-        classpath "com.gradle.publish:plugin-publish-plugin:0.9.7"
+        classpath "com.gradle.publish:plugin-publish-plugin:0.10.0"
     }
 }
 
@@ -35,7 +35,7 @@ plugins {
     id "groovy"
     id "maven"
     id "java-gradle-plugin"
-    id "com.gradle.plugin-publish" version "0.9.7"
+    id "com.gradle.plugin-publish" version "0.10.0"
     id "com.jfrog.bintray" version "1.8.0"
     id "maven-publish"
     id "de.gliderpilot.semantic-release" version "1.4.0"
@@ -222,6 +222,7 @@ semanticRelease {
 }
 
 publish.dependsOn bintrayUpload
+publish.dependsOn publishPlugins
 
 prepare.doFirst  {
   //We get grgit for free because we are using semantic-release
