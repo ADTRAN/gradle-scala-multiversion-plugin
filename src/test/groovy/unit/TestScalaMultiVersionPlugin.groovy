@@ -44,8 +44,13 @@ class TestScalaMultiVersionPlugin extends GroovyTestCase implements SimpleProjec
     }
 
     void testBaseName() {
-        def project = createProject("2.12.1")
-        assert project.jar.baseName == "test_2.12"
+        [ ["2.12.1", "2.12"],
+          ["2.13.0-M5", "2.13"]
+        ].each {
+            def (ver, base) = it
+            def project = createProject(ver)
+            assert project.jar.baseName == "test_$base"
+        }
     }
 
     void testResolutionStrategy() {
@@ -62,6 +67,8 @@ class TestScalaMultiVersionPlugin extends GroovyTestCase implements SimpleProjec
         [ [null, "Must set 'scalaVersions' property."],
           ["", "Invalid scala version '' in 'scalaVersions' property."],
           ["2.12", "Invalid scala version '2.12' in 'scalaVersions' property."],
+          ["2.13.0-SNAPSHOT", "Invalid scala version '2.13.0-SNAPSHOT' in 'scalaVersions' property."],
+          ["2.13.0-rc1", "Invalid scala version '2.13.0-rc1' in 'scalaVersions' property."],
         ].each {
             def (scalaVersions, error_msg) = it
             def msg = shouldFailWithCause(GradleException) { createProject(scalaVersions) }
@@ -72,6 +79,8 @@ class TestScalaMultiVersionPlugin extends GroovyTestCase implements SimpleProjec
     void testBadDefaultScalaVersions() {
         [ ["", "Invalid scala version '' in 'defaultScalaVersions' property."],
           ["2.12", "Invalid scala version '2.12' in 'defaultScalaVersions' property."],
+          ["2.13.0-SNAPSHOT", "Invalid scala version '2.13.0-SNAPSHOT' in 'defaultScalaVersions' property."],
+          ["2.13.0-rc1", "Invalid scala version '2.13.0-rc1' in 'defaultScalaVersions' property."],
         ].each {
             def (ver, error_msg) = it
             def msg = shouldFailWithCause(GradleException) {
@@ -85,41 +94,46 @@ class TestScalaMultiVersionPlugin extends GroovyTestCase implements SimpleProjec
     }
 
     void testSingleVersion() {
-        def project = createProject("2.12.1")
-        assert project.ext.scalaVersions == ["2.12.1"]
-        assert project.ext.scalaVersion == "2.12.1"
-        assert project.ext.scalaSuffix == "_2.12"
+        [ ["2.12.1", "_2.12"],
+          ["2.13.0-M5", "_2.13"]
+        ].each {
+            def (ver, base) = it
+            def project = createProject(ver)
+            assert project.ext.scalaVersions == [ver]
+            assert project.ext.scalaVersion == ver
+            assert project.ext.scalaSuffix == base
+        }
     }
 
     void testMultipleVersions() {
         // comma-separated lists, with or without whitespace, should be allowed
-        ["2.12.1,2.11.8", "2.12.1, 2.11.8"].each {
+        ["2.13.0-M5,2.12.1,2.11.8", "2.13.0-M5, 2.12.1, 2.11.8"].each {
             def project = createProject(it)
-            assert project.ext.scalaVersions == ["2.12.1", "2.11.8"]
-            assert project.ext.scalaVersion == "2.12.1"
-            assert project.ext.scalaSuffix == "_2.12"
-            assert project.gradle.startParameter.taskNames == [":recurseWithScalaVersion_2.11.8"]
+            assert project.ext.scalaVersions == ["2.13.0-M5", "2.12.1", "2.11.8"]
+            assert project.ext.scalaVersion == "2.13.0-M5"
+            assert project.ext.scalaSuffix == "_2.13"
+            assert project.gradle.startParameter.taskNames == [":recurseWithScalaVersion_2.12.1", ":recurseWithScalaVersion_2.11.8"]
         }
     }
 
     void testDefaultScalaVersions() {
-        def project = createProject("2.12.1,2.11.8") {
+        def project = createProject("2.13.0-M5,2.12.1,2.11.8") {
              ext.defaultScalaVersions = "2.11.8"
         }
         assert project.ext.scalaVersion == "2.11.8"
     }
 
     void testAllScalaVersions() {
-        def project = createProject("2.12.1,2.11.8") {
+        def project = createProject("2.13.0-M5,2.12.1,2.11.8") {
             ext.defaultScalaVersions = "2.11.8"
             ext.allScalaVersions = true
         }
-        assert project.ext.scalaVersion == "2.12.1"
-        assert project.gradle.startParameter.taskNames == [":recurseWithScalaVersion_2.11.8"]
+        assert project.ext.scalaVersion == "2.13.0-M5"
+        assert project.gradle.startParameter.taskNames == [":recurseWithScalaVersion_2.12.1", ":recurseWithScalaVersion_2.11.8"]
     }
 
     void testTasks() {
-        def versions = ["2.12.1", "2.11.8"]
+        def versions = ["2.13.0-M5, 2.12.1", "2.11.8"]
         def project = createProject(versions.join(","))
         project.tasks.withType(GradleBuild).each { assert it.tasks == [] }
         versions.tail().each {
@@ -141,20 +155,25 @@ class TestScalaMultiVersionPlugin extends GroovyTestCase implements SimpleProjec
     }
 
     void testMavenPom() {
-        def project = createProject("2.12.1") {
-            plugins.apply("maven")
-            tasks.uploadArchives.repositories.mavenDeployer {
-                repository(url: "dummyUrl")
+        [ ["2.12.1", "2.12"],
+          ["2.13.0-M5", "2.13"]
+        ].each {
+            def (ver, base) = it
+            def project = createProject(ver) {
+                plugins.apply("maven")
+                tasks.uploadArchives.repositories.mavenDeployer {
+                    repository(url: "dummyUrl")
+                }
             }
+            def pomXml = new StringWriter()
+            project.tasks.uploadArchives.repositories[0].pom.writeTo(pomXml)
+            pomXml = pomXml.toString()
+            assert !pomXml.contains("_%%")
+            assert !pomXml.contains("%scala_version%")
+            def root = new XmlSlurper().parseText(pomXml)
+            assert root.dependencies.'*'.find { it.artifactId == "scala-library" }.version.text() == ver
+            assert root.dependencies.'*'.find { it.artifactId == "fake-scala-dep_$base" } != null
         }
-        def pomXml = new StringWriter()
-        project.tasks.uploadArchives.repositories[0].pom.writeTo(pomXml)
-        pomXml = pomXml.toString()
-        assert !pomXml.contains("_%%")
-        assert !pomXml.contains("%scala_version%")
-        def root = new XmlSlurper().parseText(pomXml)
-        assert root.dependencies.'*'.find { it.artifactId == "scala-library" }.version.text() == '2.12.1'
-        assert root.dependencies.'*'.find { it.artifactId == "fake-scala-dep_2.12" } != null
     }
 
 }
