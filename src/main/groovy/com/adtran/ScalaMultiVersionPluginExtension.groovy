@@ -18,4 +18,10 @@ package com.adtran
 class ScalaMultiVersionPluginExtension {
     String scalaVersionPlaceholder = "%scala-version%"
     String scalaSuffixPlaceholder = "_%%"
+    
+    String scalaVersionRegex = /(?<base>\d+\.\d+)\.\d+(-(RC|M)\d+)?/
+    void setScalaVersionRegex(scalaVersionRegex) {
+        assert (scalaVersionRegex ==~ /.*\(\?<base>.+?\).*/) : "Scala version regex should include <base> named group for scala compiler base version"
+        this.scalaVersionRegex = scalaVersionRegex
+    }
 }
