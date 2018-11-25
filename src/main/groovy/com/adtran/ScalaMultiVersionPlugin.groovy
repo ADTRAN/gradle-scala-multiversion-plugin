@@ -50,14 +50,13 @@ class ScalaMultiVersionPlugin implements Plugin<Project> {
     }
 
     private boolean validateScalaVersion(String scalaVersion) {
-        def m = scalaVersion =~ /\d+\.\d+\.\d+(-(RC|M)\d+)?/
-        return m.matches()
+        return scalaVersion ==~ project.scalaMultiVersion.scalaVersionRegex
     }
 
     private String scalaVersionToSuffix(String scalaVersion) {
-        def m = scalaVersion =~ /(\d+\.\d+)\.\d+(-(RC|M)\d+)?/
+        def m = scalaVersion =~ project.scalaMultiVersion.scalaVersionRegex
         m.matches()
-        return "_" + m.group(1)
+        return "_" + m.group("base")
     }
 
     private List<String> parseScalaVersionList(propertyName) {
@@ -67,8 +66,7 @@ class ScalaMultiVersionPlugin implements Plugin<Project> {
             if (firstInvalid != null) {
                 throw new GradleException(
                     "Invalid scala version '$firstInvalid' in '$propertyName' property. " +
-                    "Please specify full X.Y.Z scala versions " + 
-                    "(Release Candidate and Milestone versions are also supported).")
+                    "Please specify full scala versions, matching pattern ${project.scalaMultiVersion.scalaVersionRegex}.")
             }
             return versions
         } catch (NullPointerException | UnknownPropertyException e) {

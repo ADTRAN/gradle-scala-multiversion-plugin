@@ -146,12 +146,24 @@ class TestScalaMultiVersionPlugin extends GroovyTestCase implements SimpleProjec
         def project = createProject("2.12.1") {
             ext.scalaMultiVersion = new ScalaMultiVersionPluginExtension(
                 scalaVersionPlaceholder: "<<sv>>",
-                scalaSuffixPlaceholder: "_##"
+                scalaSuffixPlaceholder: "_##",
+                scalaVersionRegex: /(?<base>2\.12)\.1/
             )
         }
         def conf = project.configurations.getByName("compile").resolvedConfiguration.lenientConfiguration
         assert conf.unresolvedModuleDependencies.size() == 2
         assert conf.getAllModuleDependencies().size() == 1
+    }
+
+    void testScalaExtensionVersionWithoutBase() {
+        def msg = shouldFail AssertionError, {
+            def project = createProject("2.12.1") {
+                ext.scalaMultiVersion = new ScalaMultiVersionPluginExtension(
+                    scalaVersionRegex: /no base/
+                )
+            }
+        }
+        assert msg.contains("Scala version regex should include <base> named group for scala compiler base version")
     }
 
     void testMavenPom() {
