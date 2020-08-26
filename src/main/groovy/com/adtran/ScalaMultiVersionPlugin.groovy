@@ -130,6 +130,9 @@ class ScalaMultiVersionPlugin implements Plugin<Project> {
                         startParameter.projectProperties["recursed"] = true
                         startParameter.excludedTaskNames += getRunOnceTasks()
                         tasks = project.gradle.startParameter.taskNames
+                        if(6 <= project.gradle.gradleVersion.split(java.util.regex.Pattern.quote('.'))[0].toInteger() ){
+                            buildName = project.name
+                        }
                     }
                 }
                 def tasksToAdd = buildVersionTasks.collect { it.path }
