@@ -31,6 +31,8 @@ import org.gradle.api.tasks.GradleBuild
 import org.gradle.api.tasks.Upload
 import org.gradle.api.tasks.bundling.Jar
 
+import java.util.regex.Pattern
+
 class ScalaMultiVersionPlugin implements Plugin<Project> {
     private Project project
     private List<String> defaultRunOnceTasks = ["clean"]
@@ -130,6 +132,11 @@ class ScalaMultiVersionPlugin implements Plugin<Project> {
                         startParameter.projectProperties["recursed"] = true
                         startParameter.excludedTaskNames += getRunOnceTasks()
                         tasks = project.gradle.startParameter.taskNames
+                        // workaround name clash issue in Gradle 6+. See:
+                        // https://github.com/ADTRAN/gradle-scala-multiversion-plugin/issues/27.
+                        if (6 <= project.gradle.gradleVersion.split(Pattern.quote('.'))[0].toInteger() ){
+                            buildName = project.name
+                        }
                     }
                 }
                 def tasksToAdd = buildVersionTasks.collect { it.path }
