@@ -135,7 +135,7 @@ class ScalaMultiVersionPlugin implements Plugin<Project> {
                         // workaround name clash issue in Gradle 6+. See:
                         // https://github.com/ADTRAN/gradle-scala-multiversion-plugin/issues/27.
                         if (6 <= project.gradle.gradleVersion.split(Pattern.quote('.'))[0].toInteger() ){
-                            buildName = project.name + ver
+                            buildName = project.name + "_" + ver
                         }
                     }
                 }
