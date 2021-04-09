@@ -17,5 +17,5 @@ jobs:
     - name: Build with Gradle
       run: >
         ./gradlew build cobertura
-          -Dorg.ajoberstar.grgit.auth.username=${{ secrets.GITHUB_TOKEN }}
-          -Dorg.ajoberstar.grgit.auth.password
+        -Dorg.ajoberstar.grgit.auth.username=${{ secrets.GITHUB_TOKEN }}
+        -Dorg.ajoberstar.grgit.auth.password
