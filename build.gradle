@@ -226,18 +226,18 @@ publish.dependsOn publishPlugins
 
 prepare.doFirst  {
   //We get grgit for free because we are using semantic-release
-  if(grgit.branch.getCurrent().name == "master" && version.toString().endsWith('-SNAPSHOT') && project.gradle.startParameter.taskNames.find { it == 'release' }) {
-    println """We are on the master branch, but the version is ending in -SNAPSHOT. The version only gets -SNAPSHOT dropped if:
-      * We are on the master branch
+  if(grgit.branch.getCurrent().name == "main" && version.toString().endsWith('-SNAPSHOT') && project.gradle.startParameter.taskNames.find { it == 'release' }) {
+    println """We are on the main branch, but the version is ending in -SNAPSHOT. The version only gets -SNAPSHOT dropped if:
+      * We are on the main branch
       * The repo is clean
       * There is a commit prefixed with 'fix:' or 'feat:' since the last release
 
-      If none of those things happened on the master branch then we will still land in the snapshot version strategy and have a version number with -SNAPSHOT.
+      If none of those things happened on the main branch then we will still land in the snapshot version strategy and have a version number with -SNAPSHOT.
 
       See here for more details:
 
       https://github.com/tschulte/gradle-semantic-release-plugin
       """
-      throw new GradleException('Releasing -SNAPSHOT version on master branch')
+      throw new GradleException('Releasing -SNAPSHOT version on main branch')
   }
 }
