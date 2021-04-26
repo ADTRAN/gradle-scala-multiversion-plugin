@@ -22,7 +22,6 @@ import org.gradle.api.XmlProvider
 import org.gradle.api.artifacts.DependencyResolveDetails
 import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.artifacts.component.ProjectComponentSelector
-import org.gradle.api.artifacts.maven.MavenResolver
 import org.gradle.api.artifacts.result.ResolvedDependencyResult
 import org.gradle.api.plugins.ExtraPropertiesExtension.UnknownPropertyException
 import org.gradle.api.plugins.JavaBasePlugin
@@ -164,16 +163,19 @@ class ScalaMultiVersionPlugin implements Plugin<Project> {
     // Logic for the following function was adapted from nebula-publish-plugin. See NOTICE for
     // details.
     private void resolveMavenPomDependencies(XmlProvider xml) {
+        println("***** resolveMavenPomDependencies")
         project.plugins.withType(JavaBasePlugin) {
+            println("***** JavaBasePlugin")
+            println("***** xml: $xml")
             def dependencies = xml.asNode()?.dependencies?.dependency
             def dependencyMap = [:]
 
             dependencyMap['compile'] =
-                project.configurations.compile.incoming.resolutionResult.allDependencies
+                project.configurations.compileClasspath.incoming.resolutionResult.allDependencies
             dependencyMap['runtime'] =
-                project.configurations.runtime.incoming.resolutionResult.allDependencies
+                project.configurations.runtimeClasspath.incoming.resolutionResult.allDependencies
             dependencyMap['test'] =
-                project.configurations.testRuntime.incoming.resolutionResult.allDependencies
+                project.configurations.testRuntimeClasspath.incoming.resolutionResult.allDependencies
             dependencies?.each { Node dep ->
                 def group = dep.groupId.text()
                 def name = dep.artifactId.text()
@@ -182,6 +184,7 @@ class ScalaMultiVersionPlugin implements Plugin<Project> {
                 if (scope == 'provided') {
                     scope = 'runtime'
                 }
+                println("${group}.${name} is scope ${scope}")
 
                 def rewriteDepNode = { ResolvedDependencyResult r, boolean addSuffixToName ->
                     def versionNode = dep.version
@@ -232,18 +235,12 @@ class ScalaMultiVersionPlugin implements Plugin<Project> {
 
     private void resolvePomDependencies() {
         project.afterEvaluate {
-            // for projects using the maven plugin
-            project.tasks.withType(Upload).collectMany {
-                it.repositories.withType(MavenResolver)
-            }.each { resolver ->
-                def poms = resolver.activePomFilters.collect { filter ->
-                    (filter.name == "default") ? resolver.pom : resolver.pom(filter.name)
-                }
-                poms.each { pom -> pom.withXml { resolveMavenPomDependencies(it) } }
-            }
             // for projects using the maven-publish plugin
+            println("***** resolvePomDependencies")
             if (project.plugins.hasPlugin("maven-publish")) {
+                println("***** resolvePomDependencies has plugin")
                 project.publishing.publications.withType(MavenPublication) {
+                    println("***** resolvePomDependencies has publication")
                     pom.withXml { resolveMavenPomDependencies(it) }
                     artifactId += project.ext.scalaSuffix
                 }
