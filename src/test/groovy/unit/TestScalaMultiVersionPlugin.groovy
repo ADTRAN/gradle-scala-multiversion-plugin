@@ -183,7 +183,6 @@ class TestScalaMultiVersionPlugin extends GroovyTestCase implements SimpleProjec
             t.setDestination(pomXmlFile)
             t.doGenerate()
             def pomXml = pomXmlFile.text
-            println("****** final xml: $pomXml")
             assert !pomXml.contains("_%%")
             assert !pomXml.contains("%scala_version%")
             def root = new XmlSlurper().parseText(pomXml)

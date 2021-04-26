@@ -163,10 +163,7 @@ class ScalaMultiVersionPlugin implements Plugin<Project> {
     // Logic for the following function was adapted from nebula-publish-plugin. See NOTICE for
     // details.
     private void resolveMavenPomDependencies(XmlProvider xml) {
-        println("***** resolveMavenPomDependencies")
         project.plugins.withType(JavaBasePlugin) {
-            println("***** JavaBasePlugin")
-            println("***** xml: $xml")
             def dependencies = xml.asNode()?.dependencies?.dependency
             def dependencyMap = [:]
 
@@ -184,7 +181,6 @@ class ScalaMultiVersionPlugin implements Plugin<Project> {
                 if (scope == 'provided') {
                     scope = 'runtime'
                 }
-                println("${group}.${name} is scope ${scope}")
 
                 def rewriteDepNode = { ResolvedDependencyResult r, boolean addSuffixToName ->
                     def versionNode = dep.version
@@ -236,11 +232,8 @@ class ScalaMultiVersionPlugin implements Plugin<Project> {
     private void resolvePomDependencies() {
         project.afterEvaluate {
             // for projects using the maven-publish plugin
-            println("***** resolvePomDependencies")
             if (project.plugins.hasPlugin("maven-publish")) {
-                println("***** resolvePomDependencies has plugin")
                 project.publishing.publications.withType(MavenPublication) {
-                    println("***** resolvePomDependencies has publication")
                     pom.withXml { resolveMavenPomDependencies(it) }
                     artifactId += project.ext.scalaSuffix
                 }
