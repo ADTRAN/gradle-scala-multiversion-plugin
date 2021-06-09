@@ -50,7 +50,7 @@ class TestScalaMultiVersionPlugin extends GroovyTestCase implements SimpleProjec
         ].each {
             def (ver, base) = it
             def project = createProject(ver)
-            assert project.jar.baseName == "test_$base"
+            assert project.jar.archiveBaseName.get() == "test_$base"
         }
     }
 
