@@ -29,18 +29,17 @@ buildscript {
 
 
 plugins {
-    id "nebula.dependency-lock" version "11.1.3"
+    id "nebula.dependency-lock" version "11.2.0"
     id "net.saliman.cobertura" version "4.0.0"
     id "groovy"
-    // id "maven"
     id "java-gradle-plugin"
-    id "com.gradle.plugin-publish" version "0.12.0"
+    id "com.gradle.plugin-publish" version "0.14.0"
     id "maven-publish"
-    id "de.gliderpilot.semantic-release" version "1.4.1"
     id "signing"
 }
 
 group = artifact_group
+version = get_version()
 
 sourceCompatibility = 1.6
 targetCompatibility = 1.6
@@ -109,9 +108,10 @@ def pomConfig = {
 publishing {
     repositories {
         maven {
-            def releaseRepo = "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
-            def snapshotRepo = "https://oss.sonatype.org/content/repositories/snapshots/"
-            url = version.toString().endsWith('-SNAPSHOT') ? releaseRepo: snapshotRepo
+            def releaseRepo = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
+            def snapshotRepo = "https://s01.oss.sonatype.org/content/repositories/snapshots/"
+            name = "ossrh"
+            url = version.toString().endsWith('-SNAPSHOT') ? snapshotRepo : releaseRepo
             credentials {
                 username = findProperty('ossrhUsername')
                 password = findProperty('ossrhPassword')
@@ -120,7 +120,7 @@ publishing {
     }
 
     publications {
-        mavenPublication(MavenPublication) {
+        scalaMultiVersion(MavenPublication) {
             afterEvaluate {
                 from components.java
                 artifact sourcesJar
@@ -144,7 +144,7 @@ signing {
     def signingKey = findProperty("signingKey")
     def signingPassword = findProperty("signingPassword")
     useInMemoryPgpKeys(signingKey, signingPassword)
-    sign publishing.publications.mavenPublication
+    sign publishing.publications.scalaMultiVersion
 }
 
 task sourcesJar(type: Jar) {
@@ -192,42 +192,23 @@ dependencies {
     testRuntimeOnly files(createClasspathManifest)
 }
 
-project.ext.ghToken = project.hasProperty('ghToken') ? project.getProperty('ghToken') : System.getenv('GH_TOKEN') ?: null
-semanticRelease {
-    repo {
-        ghToken = project.ghToken
-        releaseAsset jar
-        releaseAsset sourcesJar, name: "sources.jar", label: 'sources jar', contentType: 'application/zip'
-        releaseAsset javadocJar, name: "javadoc.jar", label: 'javadoc jar', contentType: 'application/zip'
-    }
-}
-
 publish.dependsOn publishPlugins
 
-prepare.doFirst  {
-  //We get grgit for free because we are using semantic-release
-  if(grgit.branch.getCurrent().name == "main" && version.toString().endsWith('-SNAPSHOT') && project.gradle.startParameter.taskNames.find { it == 'release' }) {
-    println """We are on the main branch, but the version is ending in -SNAPSHOT. The version only gets -SNAPSHOT dropped if:
-      * We are on the main branch
-      * The repo is clean
-      * There is a commit prefixed with 'fix:' or 'feat:' since the last release
-
-      If none of those things happened on the main branch then we will still land in the snapshot version strategy and have a version number with -SNAPSHOT.
-
-      See here for more details:
-
-      https://github.com/tschulte/gradle-semantic-release-plugin
-      """
-      throw new GradleException('Releasing -SNAPSHOT version on main branch')
-  }
+def get_version() {
+    def cmd = ["git", "tag", "--sort=-version:refname", "-l", "v$artifact_version*"]
+    def proc = cmd.execute()
+    proc.waitFor()
+    assert(proc.exitValue() == 0)
+    def latest = proc.text.split("\n")[0]
+    def tokens = latest?.tokenize(".")
+    def bugfix = tokens ? tokens?.last()?.toInteger() : -1
+    def suffix = System.getenv("CI") ? "" : "dev0"
+    "${artifact_version}.${bugfix+1}${suffix}"
 }
 
-task dummy() {
-    doLast {
-        print(project.tasks.withType(GenerateMavenPom))
-    }
-}
+task printVersion() { doLast { println(version) } }
 
+// debugging only...
 test {
     testLogging {
         outputs.upToDateWhen {false}
