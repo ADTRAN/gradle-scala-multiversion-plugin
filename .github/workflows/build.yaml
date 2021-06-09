@@ -50,13 +50,15 @@ jobs:
     - name: Publish to OSSRH
       id: publish_to_ossrh
       run: >
-        ./gradlew publishBetablockerPublicationToOssrhRepository
+        ./gradlew publishScalaMultiVersionPublicationToOssrhRepository
         -PossrhUsername=${{ secrets.OSSRH_USERNAME }}
         -PossrhPassword=${{ secrets.OSSRH_PASSWORD }}
     - name: Tag
       if: >
-        steps.publish_to_gradle.conclusion == 'success' ||
-        steps.publish_to_ossrh.conclusion == 'success'
+        ${{
+          steps.publish_to_gradle.conclusion == 'success' ||
+          steps.publish_to_ossrh.conclusion == 'success'
+        }}
       run: |
         version=$(./gradlew --quiet printVersion)
         tag=v$version
