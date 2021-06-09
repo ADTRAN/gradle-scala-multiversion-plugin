@@ -20,6 +20,7 @@ import com.adtran.ScalaMultiVersionPluginExtension
 import common.SimpleProjectTest
 import org.gradle.api.GradleException
 import org.gradle.api.Project
+import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.tasks.GradleBuild
 import org.gradle.testfixtures.ProjectBuilder
 
@@ -55,7 +56,7 @@ class TestScalaMultiVersionPlugin extends GroovyTestCase implements SimpleProjec
 
     void testResolutionStrategy() {
         def project = createProject("2.12.1")
-        def conf = project.configurations.getByName("compile").resolvedConfiguration.lenientConfiguration
+        def conf = project.configurations.getByName("compileClasspath").resolvedConfiguration.lenientConfiguration
         assert conf.unresolvedModuleDependencies.size() == 0
         def deps = conf.getAllModuleDependencies()
         assert deps.size() == 3
@@ -150,7 +151,7 @@ class TestScalaMultiVersionPlugin extends GroovyTestCase implements SimpleProjec
                 scalaVersionRegex: /(?<base>2\.12)\.1/
             )
         }
-        def conf = project.configurations.getByName("compile").resolvedConfiguration.lenientConfiguration
+        def conf = project.configurations.getByName("compileClasspath").resolvedConfiguration.lenientConfiguration
         assert conf.unresolvedModuleDependencies.size() == 2
         assert conf.getAllModuleDependencies().size() == 1
     }
@@ -171,15 +172,12 @@ class TestScalaMultiVersionPlugin extends GroovyTestCase implements SimpleProjec
           ["2.13.0-M5", "2.13"]
         ].each {
             def (ver, base) = it
-            def project = createProject(ver) {
-                plugins.apply("maven")
-                tasks.uploadArchives.repositories.mavenDeployer {
-                    repository(url: "dummyUrl")
-                }
-            }
-            def pomXml = new StringWriter()
-            project.tasks.uploadArchives.repositories[0].pom.writeTo(pomXml)
-            pomXml = pomXml.toString()
+            def project = createProject(ver)
+            File pomXmlFile = File.createTempFile("temp",".pom")
+            def t = project.tasks.generatePomFileForMavenPublication
+            t.setDestination(pomXmlFile)
+            t.doGenerate()
+            def pomXml = pomXmlFile.text
             assert !pomXml.contains("_%%")
             assert !pomXml.contains("%scala_version%")
             def root = new XmlSlurper().parseText(pomXml)

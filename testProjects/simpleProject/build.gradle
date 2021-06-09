@@ -33,13 +33,13 @@ repositories {
 }
 
 dependencies {
-    compile "org.scala-lang:scala-library:%scala-version%"
-    compile "org.fake:fake-scala-dep_%%:1.2.3"
-    compile "org.fake:fake-java-dep:1.2.3"
+    implementation "org.scala-lang:scala-library:%scala-version%"
+    implementation "org.fake:fake-scala-dep_%%:1.2.3"
+    implementation "org.fake:fake-java-dep:1.2.3"
 }
 
-task t1() << { println "t1 $project.scalaVersion" }
-task t2() << { println "t2 $project.scalaVersion" }
+task t1() { doLast { println "t1 $project.scalaVersion" } }
+task t2() { doLast { println "t2 $project.scalaVersion" } }
 
 publishing.publications {
     maven(MavenPublication).from(components.java)

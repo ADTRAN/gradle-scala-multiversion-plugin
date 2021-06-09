@@ -47,9 +47,9 @@ class TestScalaMultiVersionPlugin extends GroovyTestCase implements SimpleProjec
             .build()
         assert result.taskPaths(SUCCESS).toSorted() == [":t1",
                                                         ":recurseWithScalaVersion_2.2.2",
-                                                        ":codeProject:t1",
+                                                        ":codeProject_2.2.2:t1",
                                                         ":recurseWithScalaVersion_3.3.3",
-                                                        ":codeProject:t1"].sort()
+                                                        ":codeProject_3.3.3:t1"].sort()
         assert result.output.contains("t1 1.1.1")
         assert result.output.contains("t1 2.2.2")
         assert result.output.contains("t1 3.3.3")
@@ -62,7 +62,7 @@ class TestScalaMultiVersionPlugin extends GroovyTestCase implements SimpleProjec
             .build()
         assert result.taskPaths(SUCCESS).toSorted() == [":t1", ":t2",
                                                         ":recurseWithScalaVersion_2.2.2",
-                                                        ":codeProject:t1", ":codeProject:t2"].sort()
+                                                        ":codeProject_2.2.2:t1", ":codeProject_2.2.2:t2"].sort()
         assert result.output.contains("t1 1.1.1")
         assert result.output.contains("t1 2.2.2")
         assert result.output.contains("t2 1.1.1")
@@ -76,7 +76,7 @@ class TestScalaMultiVersionPlugin extends GroovyTestCase implements SimpleProjec
             .build()
         assert result.taskPaths(SUCCESS).toSorted() == [":t1",
                                                         ":recurseWithScalaVersion_2.2.2",
-                                                        ":codeProject:t1"].sort()
+                                                        ":codeProject_2.2.2:t1"].sort()
         assert result.output.contains("t1 1.1.1")
         assert result.output.contains("t1 2.2.2")
         assert !result.output.contains("t2 1.1.1")
@@ -90,7 +90,7 @@ class TestScalaMultiVersionPlugin extends GroovyTestCase implements SimpleProjec
             .build()
         assert result.taskPaths(SUCCESS).toSorted() == [":t1",
                                                         ":recurseWithScalaVersion_3.3.3",
-                                                        ":codeProject:t1"].sort()
+                                                        ":codeProject_3.3.3:t1"].sort()
         assert result.taskPaths(SUCCESS).containsAll(":t1", ":recurseWithScalaVersion_3.3.3")
         assert !result.output.contains("t1 1.1.1")
         assert result.output.contains("t1 2.2.2")
@@ -107,9 +107,9 @@ class TestScalaMultiVersionPlugin extends GroovyTestCase implements SimpleProjec
             .build()
         assert result.taskPaths(SUCCESS).toSorted() == [":t1",
                                                         ":recurseWithScalaVersion_2.2.2",
-                                                        ":codeProject:t1",
+                                                        ":codeProject_2.2.2:t1",
                                                         ":recurseWithScalaVersion_3.3.3",
-                                                        ":codeProject:t1"].sort()
+                                                        ":codeProject_3.3.3:t1"].sort()
         assert result.output.contains("t1 1.1.1")
         assert result.output.contains("t1 2.2.2")
         assert result.output.contains("t1 3.3.3")
@@ -136,7 +136,7 @@ class TestScalaMultiVersionPlugin extends GroovyTestCase implements SimpleProjec
             .build()
         assert result.taskPaths(SUCCESS).toSorted() == [":t1", ":t2",
                                                         ":recurseWithScalaVersion_2.2.2",
-                                                        ":codeProject:t1"].sort()
+                                                        ":codeProject_2.2.2:t1"].sort()
         assert result.output.contains("t1 1.1.1")
         assert result.output.contains("t1 2.2.2")
         assert result.output.contains("t2 1.1.1")
