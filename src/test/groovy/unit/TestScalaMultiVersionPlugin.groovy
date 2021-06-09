@@ -59,7 +59,7 @@ class TestScalaMultiVersionPlugin extends GroovyTestCase implements SimpleProjec
         def conf = project.configurations.getByName("compileClasspath").resolvedConfiguration.lenientConfiguration
         assert conf.unresolvedModuleDependencies.size() == 0
         def deps = conf.getAllModuleDependencies()
-        assert deps.size() == 3
+        assert deps.size() == 4
         deps.each { assert !it.name.contains("_%%") }
         deps.each { assert !it.moduleVersion.contains("scalaVersion") }
     }
@@ -152,7 +152,7 @@ class TestScalaMultiVersionPlugin extends GroovyTestCase implements SimpleProjec
             )
         }
         def conf = project.configurations.getByName("compileClasspath").resolvedConfiguration.lenientConfiguration
-        assert conf.unresolvedModuleDependencies.size() == 2
+        assert conf.unresolvedModuleDependencies.size() == 3
         assert conf.getAllModuleDependencies().size() == 1
     }
 

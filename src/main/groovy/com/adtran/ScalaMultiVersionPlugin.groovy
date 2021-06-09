@@ -85,11 +85,16 @@ class ScalaMultiVersionPlugin implements Plugin<Project> {
 
     private void replaceScalaVersions(DependencyResolveDetails details) {
         def newName = details.requested.name.replace(
-                project.scalaMultiVersion.scalaSuffixPlaceholder,
-                project.ext.scalaSuffix)
+            project.scalaMultiVersion.scalaSuffixPlaceholder,
+            project.ext.scalaSuffix
+        ).replace(
+            project.scalaMultiVersion.scalaVersionPlaceholder,
+            project.ext.scalaVersion
+        )
         def newVersion = details.requested.version.replace(
-                project.scalaMultiVersion.scalaVersionPlaceholder,
-                project.ext.scalaVersion)
+            project.scalaMultiVersion.scalaVersionPlaceholder,
+            project.ext.scalaVersion
+        )
         def newTarget = "$details.requested.group:$newName:$newVersion"
         if(newTarget != details.requested.toString()) {
             // unnecessarily calling `useTarget` seemed to cause problems in some cases,

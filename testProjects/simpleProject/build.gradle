@@ -36,6 +36,7 @@ dependencies {
     implementation "org.scala-lang:scala-library:%scala-version%"
     implementation "org.fake:fake-scala-dep_%%:1.2.3"
     implementation "org.fake:fake-java-dep:1.2.3"
+    implementation "org.scalamacros:fake-compiler-plugin_%scala-version%:1.2.3"
 }
 
 task t1() { doLast { println "t1 $project.scalaVersion" } }
