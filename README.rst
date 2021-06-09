@@ -232,7 +232,7 @@ Known Limitations
   artifacts will overwrite each other and only the last one will survive. So for example ``scalaVersions = 2.11.1,
   2.11.8`` won't work as you expect today.
 
-* POM files are modified only when using the `maven-publish`_ plugins. Ivy publishing will work, but you'll
+* POM files are modified only when using the `maven-publish`_ plugin. Ivy publishing will work, but you'll
   probably find that your POM files contain ``_%%`` and ``%scala-version%`` placeholders. Support for Ivy should be
   straightforward to add. Pull requests are welcome!
 
