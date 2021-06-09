@@ -1,8 +1,9 @@
-.. image:: https://api.bintray.com/packages/adtran/maven/scala-multiversion-plugin/images/download.svg
-  :target: https://bintray.com/adtran/maven/scala-multiversion-plugin/_latestVersion
-  :alt: download
-.. image:: https://travis-ci.org/ADTRAN/gradle-scala-multiversion-plugin.svg?branch=main
-    :target: https://travis-ci.org/ADTRAN/gradle-scala-multiversion-plugin
+.. image:: https://maven-badges.herokuapp.com/maven-central/com.adtran/scala-multiversion-plugin/badge.svg?style=flat
+    :target: https://search.maven.org/artifact/com.adtran/scala-multiversion-plugin
+    :alt: Download from Maven Central
+.. image:: https://github.com/ADTRAN/gradle-scala-multiversion-plugin/actions/workflows/build.yaml/badge.svg
+    :target: https://github.com/ADTRAN/gradle-scala-multiversion-plugin/actions/
+    :alt: CI Status
 
 ==========================
 Scala Multi-Version Plugin
@@ -21,7 +22,6 @@ appropriate suffix added (e.g. ``my-project_2.12-1.2.3.jar``).
 There's also a blog post about the plugin here_.
 
 .. _here: https://www.adtran.com/index.php/blog/technology-blog/356-announcing-the-gradle-scala-multiversion-plugin
-
 
 Setup
 =====
@@ -232,12 +232,21 @@ Known Limitations
   artifacts will overwrite each other and only the last one will survive. So for example ``scalaVersions = 2.11.1,
   2.11.8`` won't work as you expect today.
 
-* POM files are modified only when using the `maven`_ or `maven-publish`_ plugins. Ivy publishing will work, but you'll
+* POM files are modified only when using the `maven-publish`_ plugin. Ivy publishing will work, but you'll
   probably find that your POM files contain ``_%%`` and ``%scala-version%`` placeholders. Support for Ivy should be
   straightforward to add. Pull requests are welcome!
 
 .. _maven: https://docs.gradle.org/current/userguide/maven_plugin.html
 .. _maven-publish: https://docs.gradle.org/current/userguide/publishing_maven.html
+
+Very Partial Changelog
+======================
+
+Version 2.0
+-----------
+
+* Adds support for recent versions of Gradle (tested with 6.3)
+* Removes support for the long-deprecated maven_ plugin. Use maven-publish_ instead.
 
 License
 =======
