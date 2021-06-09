@@ -155,7 +155,11 @@ class ScalaMultiVersionPlugin implements Plugin<Project> {
     private void addSuffixToJars() {
         project.afterEvaluate {
             project.tasks.withType(Jar) { t ->
-                t.baseName += project.ext.scalaSuffix
+                if (6 <= project.gradle.gradleVersion.split(Pattern.quote('.'))[0].toInteger() ){
+                    t.archiveBaseName.set(t.archiveBaseName.get() + project.ext.scalaSuffix)
+                } else {
+                    t.baseName += project.ext.scalaSuffix
+                }
             }
         }
     }
