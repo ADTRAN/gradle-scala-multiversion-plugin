@@ -18,6 +18,8 @@ package com.adtran
 class ScalaMultiVersionPluginExtension {
     String scalaVersionPlaceholder = "%scala-version%"
     String scalaSuffixPlaceholder = "_%%"
+    String scala3SuffixPlaceholder = "%_3%"
+    String scala3BasePlaceholder = "%3%"
     
     String scalaVersionRegex = /(?<base>\d+\.\d+)\.\d+(-(RC|M)\d+)?/
     void setScalaVersionRegex(scalaVersionRegex) {

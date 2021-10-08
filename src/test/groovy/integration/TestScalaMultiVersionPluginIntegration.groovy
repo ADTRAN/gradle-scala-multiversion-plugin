@@ -122,11 +122,29 @@ class TestScalaMultiVersionPlugin extends GroovyTestCase implements SimpleProjec
             .build()
         def pomXml = new File(projectDir, "build/publications/maven/pom-default.xml").text
         assert !pomXml.contains("_%%")
+        assert !pomXml.contains("%_3%")
+        assert !pomXml.contains("%3%")
         assert !pomXml.contains("%scala_version%")
         def root = new XmlSlurper().parseText(pomXml)
         assert root.dependencies.'*'.find { it.artifactId == "scala-library" }.version.text() == '2.12.1'
         assert root.dependencies.'*'.find { it.artifactId == "fake-scala-dep_2.12" } != null
         assert root.artifactId.text() == "codeProject_2.12"
+    }
+
+    void testMavenPublishPomv3() {
+        def result = GradleRunner.create()
+            .withProjectDir(projectDir)
+            .withArguments("generatePomFileForMavenPublication", "-PscalaVersions=3.0.0")
+            .build()
+        def pomXml = new File(projectDir, "build/publications/maven/pom-default.xml").text
+        assert !pomXml.contains("_%%")
+        assert !pomXml.contains("%_3%")
+        assert !pomXml.contains("%3%")
+        assert !pomXml.contains("%scala_version%")
+        def root = new XmlSlurper().parseText(pomXml)
+        assert root.dependencies.'*'.find { it.artifactId == "scala3-library_3" }.version.text() == '3.0.0'
+        assert root.dependencies.'*'.find { it.artifactId == "fake-scala-dep_3" } != null
+        assert root.artifactId.text() == "codeProject_3"
     }
 
     void testRunOnceTasks() {

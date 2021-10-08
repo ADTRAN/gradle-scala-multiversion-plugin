@@ -57,7 +57,8 @@ class ScalaMultiVersionPlugin implements Plugin<Project> {
     private String scalaVersionToSuffix(String scalaVersion) {
         def m = scalaVersion =~ project.scalaMultiVersion.scalaVersionRegex
         m.matches()
-        return "_" + m.group("base")
+        def base = m.group("base")
+        return (base.startsWith("3.") ? "_3" : ("_" + base))
     }
 
     private List<String> parseScalaVersionList(propertyName) {
@@ -84,16 +85,30 @@ class ScalaMultiVersionPlugin implements Plugin<Project> {
     }
 
     private void replaceScalaVersions(DependencyResolveDetails details) {
+        def v3Value = project.ext.scalaSuffix.startsWith("_3") ? "3" : ""
+        def v3ValueSuffix = project.ext.scalaSuffix.startsWith("_3") ? "_3" : ""
         def newName = details.requested.name.replace(
             project.scalaMultiVersion.scalaSuffixPlaceholder,
             project.ext.scalaSuffix
         ).replace(
             project.scalaMultiVersion.scalaVersionPlaceholder,
             project.ext.scalaVersion
+        ).replace(
+            project.scalaMultiVersion.scala3SuffixPlaceholder,
+            v3ValueSuffix
+        ).replace(
+            project.scalaMultiVersion.scala3BasePlaceholder,
+            v3Value
         )
         def newVersion = details.requested.version.replace(
             project.scalaMultiVersion.scalaVersionPlaceholder,
             project.ext.scalaVersion
+        ).replace(
+            project.scalaMultiVersion.scala3SuffixPlaceholder,
+            v3ValueSuffix
+        ).replace(
+            project.scalaMultiVersion.scala3BasePlaceholder,
+            v3Value
         )
         def newTarget = "$details.requested.group:$newName:$newVersion"
         if(newTarget != details.requested.toString()) {

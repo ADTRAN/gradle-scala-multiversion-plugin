@@ -46,7 +46,8 @@ class TestScalaMultiVersionPlugin extends GroovyTestCase implements SimpleProjec
 
     void testBaseName() {
         [ ["2.12.1", "2.12"],
-          ["2.13.0-M5", "2.13"]
+          ["2.13.0-M5", "2.13"],
+          ["3.1.2", "3"]
         ].each {
             def (ver, base) = it
             def project = createProject(ver)
