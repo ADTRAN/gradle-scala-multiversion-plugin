@@ -19,7 +19,7 @@ import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.XmlProvider
-import org.gradle.api.artifacts.DependencyResolveDetails
+import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.artifacts.component.ProjectComponentSelector
 import org.gradle.api.artifacts.result.ResolvedDependencyResult
@@ -27,7 +27,6 @@ import org.gradle.api.plugins.ExtraPropertiesExtension.UnknownPropertyException
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.tasks.GradleBuild
-import org.gradle.api.tasks.Upload
 import org.gradle.api.tasks.bundling.Jar
 
 import java.util.regex.Pattern
@@ -83,29 +82,33 @@ class ScalaMultiVersionPlugin implements Plugin<Project> {
         project.ext.defaultScalaVersions = parseScalaVersionList("defaultScalaVersions")
     }
 
-    private void replaceScalaVersions(DependencyResolveDetails details) {
-        def newName = details.requested.name.replace(
+    private String replaceScalaVersions(Dependency dependency) {
+        def newName = dependency.name.replace(
             project.scalaMultiVersion.scalaSuffixPlaceholder,
             project.ext.scalaSuffix
         ).replace(
             project.scalaMultiVersion.scalaVersionPlaceholder,
             project.ext.scalaVersion
         )
-        def newVersion = details.requested.version.replace(
+        def newVersion = dependency.version.replace(
             project.scalaMultiVersion.scalaVersionPlaceholder,
-            project.ext.scalaVersion
-        )
-        def newTarget = "$details.requested.group:$newName:$newVersion"
-        if(newTarget != details.requested.toString()) {
-            // unnecessarily calling `useTarget` seemed to cause problems in some cases,
-            // particularly with `project(...)`-style dependencies.
-            details.useTarget(newTarget)
-        }
+            project.ext.scalaVersion)
+        return "$dependency.group:$newName:$newVersion"
     }
 
     private void setResolutionStrategy() {
-        project.configurations.all { conf ->
-            conf.resolutionStrategy.eachDependency { replaceScalaVersions(it) }
+        project.configurations.all {
+            withDependencies { dependencies ->
+                dependencies.findAll { Dependency dependency ->
+                    [ project.scalaMultiVersion.scalaSuffixPlaceholder, project.scalaMultiVersion.scalaVersionPlaceholder ].any {
+                        "${dependency.name}:${dependency.version}".contains(it)
+                    }
+                }.forEach { Dependency dependency ->
+                    def newTarget = replaceScalaVersions(dependency)
+                    dependencies.add(project.dependencies.create(newTarget))
+                    dependencies.remove(dependency)
+                }
+            }
         }
     }
 
