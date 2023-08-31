@@ -17,9 +17,12 @@ package unit
 
 import com.adtran.ScalaMultiVersionPlugin
 import com.adtran.ScalaMultiVersionPluginExtension
+import common.GradleMetadataUtil
 import common.SimpleProjectTest
+import groovy.json.JsonSlurper
 import org.gradle.api.GradleException
 import org.gradle.api.Project
+import org.gradle.api.publish.internal.GradleModuleMetadataWriter
 import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.tasks.GradleBuild
 import org.gradle.testfixtures.ProjectBuilder
@@ -183,6 +186,29 @@ class TestScalaMultiVersionPlugin extends GroovyTestCase implements SimpleProjec
             def root = new XmlSlurper().parseText(pomXml)
             assert root.dependencies.'*'.find { it.artifactId == "scala-library" }.version.text() == ver
             assert root.dependencies.'*'.find { it.artifactId == "fake-scala-dep_$base" } != null
+        }
+    }
+
+    void testGradleModuleMetadata() {
+        [ ["2.12.1", "2.12"],
+          ["2.13.0-M5", "2.13"]
+        ].each {
+            def (ver, base) = it
+            def project = createProject(ver)
+            File moduleMetadataFile = File.createTempFile("temp", ".module")
+            Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(moduleMetadataFile), "utf8"));
+            GradleModuleMetadataWriter metadataWriter = GradleMetadataUtil.createMetadataWriter()
+            def publications = project.publishing.publications.withType(MavenPublication.class)
+            publications.all { publication ->
+                metadataWriter.generateTo(publication, publications, writer)
+                def metadataJsonStr = moduleMetadataFile.text
+                assert !metadataJsonStr.contains("_%%")
+                assert !metadataJsonStr.contains("%scala_version%")
+                def metadataJson = new JsonSlurper().parseText(metadataJsonStr)
+                def runtimeDependencies = metadataJson.variants.find { it.name == "runtimeElements" }.dependencies
+                assert runtimeDependencies.find { it.module == "scala-library" }.version.requires == ver
+                assert runtimeDependencies.find { it.module == "fake-scala-dep_$base" } != null
+            }
         }
     }
 
