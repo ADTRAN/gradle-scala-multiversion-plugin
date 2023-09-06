@@ -248,9 +248,17 @@ class TestScalaMultiVersionPlugin extends GroovyTestCase implements SimpleProjec
                 assert !metadataJsonStr.contains("_%%")
                 assert !metadataJsonStr.contains("%scala_version%")
                 def metadataJson = new JsonSlurper().parseText(metadataJsonStr)
-                def runtimeDependencies = metadataJson.variants.find { it.name == "runtimeElements" }.dependencies
+                def runtimeElementsVariant = metadataJson.variants.find { it.name == "runtimeElements" }
+                def runtimeDependencies = runtimeElementsVariant.dependencies
+                assert runtimeDependencies != null
                 assert runtimeDependencies.find { it.module == "scala-library" }.version.requires == ver
                 assert runtimeDependencies.find { it.module == "fake-scala-dep_$base" } != null
+                def runtimeDependencyConstraints = runtimeElementsVariant.dependencyConstraints
+                assert runtimeDependencyConstraints != null
+                def fakeScalaDepConstraint = runtimeDependencyConstraints.find { it.module == "fake-scala-dep_$base" }
+                assert fakeScalaDepConstraint != null
+                assert fakeScalaDepConstraint.reason == "foo"
+                assert fakeScalaDepConstraint.version == [requires: "[1.2, 1.3[", prefers: "1.2.4", rejects: ["1.2.5"]]
             }
         }
     }
