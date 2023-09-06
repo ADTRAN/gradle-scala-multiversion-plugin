@@ -57,14 +57,14 @@ class TestScalaMultiVersionPlugin extends GroovyTestCase implements SimpleProjec
         }
     }
 
-    void testResolutionStrategy() {
+    void testDependencyResolution() {
         def project = createProject("2.12.1")
         def conf = project.configurations.getByName("compileClasspath").resolvedConfiguration.lenientConfiguration
         assert conf.unresolvedModuleDependencies.size() == 0
         def deps = conf.getAllModuleDependencies()
         assert deps.size() == 4
         deps.each { assert !it.name.contains("_%%") }
-        deps.each { assert !it.moduleVersion.contains("scalaVersion") }
+        deps.each { assert !it.moduleVersion.contains("%scala-version%") }
     }
 
     void testBadScalaVersions() {
@@ -155,7 +155,7 @@ class TestScalaMultiVersionPlugin extends GroovyTestCase implements SimpleProjec
             )
         }
         def conf = project.configurations.getByName("compileClasspath").resolvedConfiguration.lenientConfiguration
-        assert conf.unresolvedModuleDependencies.size() == 3
+        assert conf.unresolvedModuleDependencies.size() == 4 // 3 dependencies + 1 constraint
         assert conf.getAllModuleDependencies().size() == 1
     }
 
