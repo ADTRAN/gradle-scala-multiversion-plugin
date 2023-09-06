@@ -67,6 +67,49 @@ class TestScalaMultiVersionPlugin extends GroovyTestCase implements SimpleProjec
         deps.each { assert !it.moduleVersion.contains("%scala-version%") }
     }
 
+    void testConstraintResolution() {
+        def project = createProject("2.12.1")
+        def conf = project.configurations.getByName("implementation")
+        conf.dependencyConstraints.each {assert !it.name.contains("_%%") }
+        conf.dependencyConstraints.each {assert !it.name.contains("%scala-version%") }
+        def resolvedConstraint = conf.dependencyConstraints.find { it.name == "fake-scala-dep_2.12" }
+        assert resolvedConstraint != null
+        def versionConstraint = resolvedConstraint.versionConstraint
+        assert versionConstraint.preferredVersion == "1.2.4"
+        assert versionConstraint.requiredVersion == "[1.2, 1.3["
+        assert versionConstraint.rejectedVersions == ["1.2.5"]
+        assert resolvedConstraint.reason == "foo"
+    }
+
+    void testDependencyWithConstraintResolved() {
+        def project = createProject("2.12.1")
+        def conf = project.configurations.getByName("compileClasspath")
+        def resolvedDependencies = conf.resolvedConfiguration.firstLevelModuleDependencies
+        def resolvedDependency = resolvedDependencies.find {it.module.id.name == "fake-scala-dep_2.12" }
+        assert resolvedDependency != null
+        assert resolvedDependency.moduleVersion == "1.2.3"
+    }
+
+    void testUnresolvableConstraint() {
+        def addUnresolvableConstraint = {
+            afterEvaluate {
+                dependencies {
+                    constraints {
+                        implementation("org.scalamacros:fake-compiler-plugin_%scala-version%") {
+                            version {
+                                reject "1.2.3"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        def project = createProject("2.12.1", addUnresolvableConstraint)
+        def conf = project.configurations.getByName("compileClasspath").resolvedConfiguration.lenientConfiguration
+        assert !conf.unresolvedModuleDependencies.isEmpty()
+        conf.unresolvedModuleDependencies.each {assert !it.selector.name.contains("%scala-version%") }
+    }
+
     void testBadScalaVersions() {
         [ [null, "Must set 'scalaVersions' property."],
           ["", "Invalid scala version '' in 'scalaVersions' property."],
