@@ -15,11 +15,9 @@
  */
 package com.adtran
 
-import org.gradle.api.GradleException
-import org.gradle.api.Plugin
-import org.gradle.api.Project
-import org.gradle.api.XmlProvider
-import org.gradle.api.artifacts.Dependency
+import groovy.transform.stc.ClosureParams
+import groovy.transform.stc.FromString
+import org.gradle.api.*
 import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.artifacts.component.ProjectComponentSelector
 import org.gradle.api.artifacts.result.ResolvedDependencyResult
@@ -39,7 +37,8 @@ class ScalaMultiVersionPlugin implements Plugin<Project> {
         this.project = project
         setExtension()
         calculateScalaVersions()
-        setResolutionStrategy()
+        updateDependencyConstraints()
+        updateDependencies()
         addTasks()
         addSuffixToJars()
         resolvePomDependencies()
@@ -82,32 +81,68 @@ class ScalaMultiVersionPlugin implements Plugin<Project> {
         project.ext.defaultScalaVersions = parseScalaVersionList("defaultScalaVersions")
     }
 
-    private String replaceScalaVersions(Dependency dependency) {
-        def newName = dependency.name.replace(
+    private String replaceSuffixPlaceholder(String str) {
+        str.replace(
             project.scalaMultiVersion.scalaSuffixPlaceholder,
             project.ext.scalaSuffix
-        ).replace(
-            project.scalaMultiVersion.scalaVersionPlaceholder,
-            project.ext.scalaVersion
         )
-        def newVersion = dependency.version.replace(
-            project.scalaMultiVersion.scalaVersionPlaceholder,
-            project.ext.scalaVersion)
-        return "$dependency.group:$newName:$newVersion"
     }
 
-    private void setResolutionStrategy() {
-        project.configurations.all {
-            withDependencies { dependencies ->
-                dependencies.findAll { Dependency dependency ->
-                    [ project.scalaMultiVersion.scalaSuffixPlaceholder, project.scalaMultiVersion.scalaVersionPlaceholder ].any {
-                        "${dependency.name}:${dependency.version}".contains(it)
-                    }
-                }.forEach { Dependency dependency ->
-                    def newTarget = replaceScalaVersions(dependency)
-                    dependencies.add(project.dependencies.create(newTarget))
-                    dependencies.remove(dependency)
-                }
+    private String replaceVersionPlaceholder(String str) {
+        str.replace(
+            project.scalaMultiVersion.scalaVersionPlaceholder,
+            project.ext.scalaVersion)
+    }
+
+    private String prepareObjectNotion(domainObject) {
+        def newName = replaceVersionPlaceholder(replaceSuffixPlaceholder(domainObject.name))
+        if (domainObject.version == null) {
+            return "$domainObject.group:$newName"
+        }
+        def newVersion = replaceVersionPlaceholder(domainObject.version)
+        return "$domainObject.group:$newName:$newVersion"
+    }
+
+    private <T> void updateDomainObjectSet(DomainObjectSet<T> domainObjectSet, @ClosureParams(value = FromString, options = ["String, T"]) Closure<T> copyObject) {
+        domainObjectSet.findAll {domainObject ->
+            [ project.scalaMultiVersion.scalaSuffixPlaceholder, project.scalaMultiVersion.scalaVersionPlaceholder ].any {
+                "${domainObject.name}:${domainObject.version}".contains(it)
+            }
+        }.forEach {domainObj ->
+            def newNotion = prepareObjectNotion(domainObj)
+            def newObj = copyObject(newNotion, domainObj)
+            domainObjectSet.add(newObj)
+            domainObjectSet.remove(domainObj)
+        }
+    }
+
+    private void updateDependencyConstraints() {
+        project.afterEvaluate {
+            project.configurations.configureEach {
+                updateDomainObjectSet(it.dependencyConstraints, { notion, initialConstraint ->
+                    project.dependencies.constraints.create(notion, {constraint ->
+                        def oldVersionConstraint = initialConstraint.versionConstraint
+                        constraint.version {
+                            it.strictly replaceVersionPlaceholder(oldVersionConstraint.strictVersion)
+                            it.require replaceVersionPlaceholder(oldVersionConstraint.requiredVersion)
+                            it.prefer replaceVersionPlaceholder(oldVersionConstraint.preferredVersion)
+                            def rejectedVersions = oldVersionConstraint.rejectedVersions.collect { replaceVersionPlaceholder(it) } as String[]
+                            it.reject rejectedVersions
+                        }
+                        constraint.because initialConstraint.reason
+                    })
+                })
+            }
+        }
+    }
+
+    private void updateDependencies() {
+        project.configurations.configureEach { conf ->
+            conf.withDependencies { dependencies ->
+                updateDomainObjectSet(dependencies, {
+                    notion, initialDependency ->
+                        project.dependencies.create(notion)
+                })
             }
         }
     }

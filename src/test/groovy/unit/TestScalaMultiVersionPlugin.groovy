@@ -57,14 +57,57 @@ class TestScalaMultiVersionPlugin extends GroovyTestCase implements SimpleProjec
         }
     }
 
-    void testResolutionStrategy() {
+    void testDependencyResolution() {
         def project = createProject("2.12.1")
         def conf = project.configurations.getByName("compileClasspath").resolvedConfiguration.lenientConfiguration
         assert conf.unresolvedModuleDependencies.size() == 0
         def deps = conf.getAllModuleDependencies()
         assert deps.size() == 4
         deps.each { assert !it.name.contains("_%%") }
-        deps.each { assert !it.moduleVersion.contains("scalaVersion") }
+        deps.each { assert !it.moduleVersion.contains("%scala-version%") }
+    }
+
+    void testConstraintResolution() {
+        def project = createProject("2.12.1")
+        def conf = project.configurations.getByName("implementation")
+        conf.dependencyConstraints.each {assert !it.name.contains("_%%") }
+        conf.dependencyConstraints.each {assert !it.name.contains("%scala-version%") }
+        def resolvedConstraint = conf.dependencyConstraints.find { it.name == "fake-scala-dep_2.12" }
+        assert resolvedConstraint != null
+        def versionConstraint = resolvedConstraint.versionConstraint
+        assert versionConstraint.preferredVersion == "1.2.4"
+        assert versionConstraint.requiredVersion == "[1.2, 1.3["
+        assert versionConstraint.rejectedVersions == ["1.2.5"]
+        assert resolvedConstraint.reason == "foo"
+    }
+
+    void testDependencyWithConstraintResolved() {
+        def project = createProject("2.12.1")
+        def conf = project.configurations.getByName("compileClasspath")
+        def resolvedDependencies = conf.resolvedConfiguration.firstLevelModuleDependencies
+        def resolvedDependency = resolvedDependencies.find {it.module.id.name == "fake-scala-dep_2.12" }
+        assert resolvedDependency != null
+        assert resolvedDependency.moduleVersion == "1.2.3"
+    }
+
+    void testUnresolvableConstraint() {
+        def addUnresolvableConstraint = {
+            afterEvaluate {
+                dependencies {
+                    constraints {
+                        implementation("org.scalamacros:fake-compiler-plugin_%scala-version%") {
+                            version {
+                                reject "1.2.3"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        def project = createProject("2.12.1", addUnresolvableConstraint)
+        def conf = project.configurations.getByName("compileClasspath").resolvedConfiguration.lenientConfiguration
+        assert !conf.unresolvedModuleDependencies.isEmpty()
+        conf.unresolvedModuleDependencies.each {assert !it.selector.name.contains("%scala-version%") }
     }
 
     void testBadScalaVersions() {
@@ -155,7 +198,7 @@ class TestScalaMultiVersionPlugin extends GroovyTestCase implements SimpleProjec
             )
         }
         def conf = project.configurations.getByName("compileClasspath").resolvedConfiguration.lenientConfiguration
-        assert conf.unresolvedModuleDependencies.size() == 3
+        assert conf.unresolvedModuleDependencies.size() == 4 // 3 dependencies + 1 constraint
         assert conf.getAllModuleDependencies().size() == 1
     }
 
@@ -205,9 +248,17 @@ class TestScalaMultiVersionPlugin extends GroovyTestCase implements SimpleProjec
                 assert !metadataJsonStr.contains("_%%")
                 assert !metadataJsonStr.contains("%scala_version%")
                 def metadataJson = new JsonSlurper().parseText(metadataJsonStr)
-                def runtimeDependencies = metadataJson.variants.find { it.name == "runtimeElements" }.dependencies
+                def runtimeElementsVariant = metadataJson.variants.find { it.name == "runtimeElements" }
+                def runtimeDependencies = runtimeElementsVariant.dependencies
+                assert runtimeDependencies != null
                 assert runtimeDependencies.find { it.module == "scala-library" }.version.requires == ver
                 assert runtimeDependencies.find { it.module == "fake-scala-dep_$base" } != null
+                def runtimeDependencyConstraints = runtimeElementsVariant.dependencyConstraints
+                assert runtimeDependencyConstraints != null
+                def fakeScalaDepConstraint = runtimeDependencyConstraints.find { it.module == "fake-scala-dep_$base" }
+                assert fakeScalaDepConstraint != null
+                assert fakeScalaDepConstraint.reason == "foo"
+                assert fakeScalaDepConstraint.version == [requires: "[1.2, 1.3[", prefers: "1.2.4", rejects: ["1.2.5"]]
             }
         }
     }
