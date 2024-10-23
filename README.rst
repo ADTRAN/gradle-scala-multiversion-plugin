@@ -224,6 +224,16 @@ syntax. In this case, you need to use the same syntax in the substitution rule::
 
 .. _composite builds: https://docs.gradle.org/current/userguide/composite_builds.html
 
+
+Customized publishing
+=================
+
+By default POM files are modified by adding ``scala_version`` at end of artifactId. User might disable this behaviour by
+setting ``addScalaSuffix=false`` property .
+
+``gradle build -PaddScalaSuffix=false``
+
+
 Known Limitations
 =================
 
