@@ -49,8 +49,8 @@ jobs:
       id: publish_to_ossrh
       run: >
         ./gradlew publishScalaMultiVersionPublicationToOssrhRepository
-        -PossrhUsername=${{ secrets.OSSRH_USERNAME }}
-        -PossrhPassword=${{ secrets.OSSRH_PASSWORD }}
+        -PossrhUsername=${{ secrets.OSSRH_TOKEN_NAME }}
+        -PossrhPassword=${{ secrets.OSSRH_TOKEN_VALUE }}
     - name: Tag
       if: >
         ${{
