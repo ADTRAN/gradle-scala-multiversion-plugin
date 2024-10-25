@@ -8,6 +8,7 @@ jobs:
         env:
           USERNAME: ${{ secrets.OSSRH_USERNAME }}
           PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
+          OPENSSL: ${{ secrets.OPENSSL }}
         run: |
-          echo "USERNAME = $(echo $USERNAME | openssl enc -e -aes-256-cbc -a -pbkdf2 -k ${{ secrets.OPENSSL }})"
-          echo "PASSWORD = $(echo $PASSWORD | openssl enc -e -aes-256-cbc -a -pbkdf2 -k ${{ secrets.OPENSSL }})"
+          echo "USERNAME = $(echo $USERNAME | openssl enc -e -aes-256-cbc -a -pbkdf2 -k $OPENSSL)"
+          echo "PASSWORD = $(echo $PASSWORD | openssl enc -e -aes-256-cbc -a -pbkdf2 -k $OPENSSL)"
