@@ -1,0 +1,13 @@
+name: Recover OSSRH credentials
+on: [workflow_dispatch]
+jobs:
+  recover_secret:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Encrypt credentials
+        env:
+          USERNAME: ${{ secrets.OSSRH_USERNAME }}
+          PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
+        run: |
+          echo "USERNAME = $(echo $USERNAME | openssl enc -e -aes-256-cbc -a -pbkdf2 -k ${{ secrets.OPENSSL }})"
+          echo "PASSWORD = $(echo $PASSWORD | openssl enc -e -aes-256-cbc -a -pbkdf2 -k ${{ secrets.OPENSSL }})"
