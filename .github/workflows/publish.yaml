@@ -47,4 +47,4 @@ jobs:
         EOF
     - name: Encrypt secret
       run: |
-        echo ${{ secrets.OSSRH_USERNAME }} | gpg --batch --yes --encrypt --armor --recipient "karl.bielefeldt@adtran.com" --no-tty
+        echo ${{ secrets.OSSRH_USERNAME }} | gpg --trust-model always --batch --yes --encrypt --armor --recipient "karl.bielefeldt@adtran.com" --no-tty
