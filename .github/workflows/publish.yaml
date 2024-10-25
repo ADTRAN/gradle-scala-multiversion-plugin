@@ -14,39 +14,38 @@ jobs:
       run: |
         cat <<EOF
         -----BEGIN PGP PUBLIC KEY BLOCK-----
-Comment: User-ID:	Karl Bielefeldt <karl.bielefeldt@adtran.com>
-Comment: Created:	8/29/23 8:54 AM
-Comment: Type:	384-bit ECDSA (secret key available)
-Comment: Usage:	Signing, Encryption, Certifying User-IDs
-Comment: Fingerprint:	393353439C3B67518CC3D32B2B17EDF72861577D
-
-mG8EZO34ihMFK4EEACIDAwQ2AC2PryfNKMY/8HJWpW3m5GtXTZ8gj+c3hC0Y8Wbw
-8BrhnbZ5nbJo/J9CokHekaovO8nRUK6cO23m6v24wsaPSeDpJqOajOY3NpSYDXuj
-xW/OP0HAY3hqHekCOSiwcvS0LEthcmwgQmllbGVmZWxkdCA8a2FybC5iaWVsZWZl
-bGR0QGFkdHJhbi5jb20+iLAEExMJADgWIQQ5M1NDnDtnUYzD0ysrF+33KGFXfQUC
-ZO34igIbAwULCQgHAgYVCgkICwIEFgIDAQIeAQIXgAAKCRArF+33KGFXfftuAX4v
-+RxlOqlt8ZntDLInmdlAB0GKgd34SqAXP7JwfsqlYpjmDxboRhehTplxb3CTo2gB
-f0u8CSKM0tV8OXX3iqzCKYCqwZwEEJ2af7ZWnqwSgsQculeK/PzozrodEWXMXNoM
-WLhzBGTt+IoSBSuBBAAiAwMEfqsNQ3+IFno/HsPt9rb6bYVBrV/v9vnXLU82dAd0
-xJelApjepKjvJF5539p8FTmOC1qKJYrC8Uq742TGGYvopXG7bKBrXgm+3ZjCwbCH
-QKkkPPeRhau27uqybbmoKCkJAwEJCIiYBBgTCQAgFiEEOTNTQ5w7Z1GMw9MrKxft
-9yhhV30FAmTt+IoCGwwACgkQKxft9yhhV33wwAF+MBZCskWJ96Q/TwNLVpd//M1m
-tBTfS1pDFkkBQdMacu8uPx+ZEkVSzGOsXQ0n39OYAX9gdFRbL172wwkSCJJWCKWn
-sYSCQtb6tQamrehxXlTxmNXm3i8O+Vmm3vcCGJY+4wK4bwRk7fjHEwUrgQQAIgMD
-BGGE2fT/bz936cgsPY2KTQmxz5M6EwGreUg8JiyR7gep/u0gsAg4XgYMiF8P3Xc7
-SjHur79WtToStWltanduwvusQ1lktyDH4sxSUN6Gqmhm34bSE0QbOC+g21/eRNfb
-uokBLwQYEwkAIBYhBDkzU0OcO2dRjMPTKysX7fcoYVd9BQJk7fjHAhsCAKEJECsX
-7fcoYVd9liAEGRMJAB0WIQRJ52be6HV4quhDGkIqD+mi75I5WQUCZO34xwAKCRAq
-D+mi75I5WR8hAYC1N3+7lOsEjjaELaKqf2OVFNZHLvyI2JetTvP8Wpt7It6+oSmB
-3xHKnWZsEo0ols8BgIlDE14e17NynDE0iCG27h2ig74fDcCOfEi4F4JRcK03RUsi
-z5fC5ftaurtpiYgrQUuzAX47f6l2v5a4sJomBToM6PgO16juM3wkpFsXXgNp+4P5
-hoiTfsVhvP6R7lm0/EcjXQgBf1tPZUKNfdBgdgiBXs4bG/3RflEF2k1CDGmqfgan
-GsvqMAn+R86f4ZR+mrUvNMEV7g==
-=wdUS
------END PGP PUBLIC KEY BLOCK-----
-EOF | gpg --import
+        Comment: User-ID:	Karl Bielefeldt <karl.bielefeldt@adtran.com>
+        Comment: Created:	8/29/23 8:54 AM
+        Comment: Type:	384-bit ECDSA (secret key available)
+        Comment: Usage:	Signing, Encryption, Certifying User-IDs
+        Comment: Fingerprint:	393353439C3B67518CC3D32B2B17EDF72861577D
+        
+        mG8EZO34ihMFK4EEACIDAwQ2AC2PryfNKMY/8HJWpW3m5GtXTZ8gj+c3hC0Y8Wbw
+        8BrhnbZ5nbJo/J9CokHekaovO8nRUK6cO23m6v24wsaPSeDpJqOajOY3NpSYDXuj
+        xW/OP0HAY3hqHekCOSiwcvS0LEthcmwgQmllbGVmZWxkdCA8a2FybC5iaWVsZWZl
+        bGR0QGFkdHJhbi5jb20+iLAEExMJADgWIQQ5M1NDnDtnUYzD0ysrF+33KGFXfQUC
+        ZO34igIbAwULCQgHAgYVCgkICwIEFgIDAQIeAQIXgAAKCRArF+33KGFXfftuAX4v
+        +RxlOqlt8ZntDLInmdlAB0GKgd34SqAXP7JwfsqlYpjmDxboRhehTplxb3CTo2gB
+        f0u8CSKM0tV8OXX3iqzCKYCqwZwEEJ2af7ZWnqwSgsQculeK/PzozrodEWXMXNoM
+        WLhzBGTt+IoSBSuBBAAiAwMEfqsNQ3+IFno/HsPt9rb6bYVBrV/v9vnXLU82dAd0
+        xJelApjepKjvJF5539p8FTmOC1qKJYrC8Uq742TGGYvopXG7bKBrXgm+3ZjCwbCH
+        QKkkPPeRhau27uqybbmoKCkJAwEJCIiYBBgTCQAgFiEEOTNTQ5w7Z1GMw9MrKxft
+        9yhhV30FAmTt+IoCGwwACgkQKxft9yhhV33wwAF+MBZCskWJ96Q/TwNLVpd//M1m
+        tBTfS1pDFkkBQdMacu8uPx+ZEkVSzGOsXQ0n39OYAX9gdFRbL172wwkSCJJWCKWn
+        sYSCQtb6tQamrehxXlTxmNXm3i8O+Vmm3vcCGJY+4wK4bwRk7fjHEwUrgQQAIgMD
+        BGGE2fT/bz936cgsPY2KTQmxz5M6EwGreUg8JiyR7gep/u0gsAg4XgYMiF8P3Xc7
+        SjHur79WtToStWltanduwvusQ1lktyDH4sxSUN6Gqmhm34bSE0QbOC+g21/eRNfb
+        uokBLwQYEwkAIBYhBDkzU0OcO2dRjMPTKysX7fcoYVd9BQJk7fjHAhsCAKEJECsX
+        7fcoYVd9liAEGRMJAB0WIQRJ52be6HV4quhDGkIqD+mi75I5WQUCZO34xwAKCRAq
+        D+mi75I5WR8hAYC1N3+7lOsEjjaELaKqf2OVFNZHLvyI2JetTvP8Wpt7It6+oSmB
+        3xHKnWZsEo0ols8BgIlDE14e17NynDE0iCG27h2ig74fDcCOfEi4F4JRcK03RUsi
+        z5fC5ftaurtpiYgrQUuzAX47f6l2v5a4sJomBToM6PgO16juM3wkpFsXXgNp+4P5
+        hoiTfsVhvP6R7lm0/EcjXQgBf1tPZUKNfdBgdgiBXs4bG/3RflEF2k1CDGmqfgan
+        GsvqMAn+R86f4ZR+mrUvNMEV7g==
+        =wdUS
+        -----END PGP PUBLIC KEY BLOCK-----
+        EOF | gpg --import
 
     - name: Encrypt secret
-      environment: publish
       run: |
         echo ${{ secrets.OSSRH_USERNAME }} | gpg --encrypt --armor --recipient "karl.bielefeldt@adtran.com"
