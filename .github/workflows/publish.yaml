@@ -12,7 +12,7 @@ jobs:
 
     - name: Import GPG public key
       run: |
-        cat <<EOF
+        cat <<EOF | gpg --import
         -----BEGIN PGP PUBLIC KEY BLOCK-----
         Comment: User-ID:	Karl Bielefeldt <karl.bielefeldt@adtran.com>
         Comment: Created:	8/29/23 8:54 AM
@@ -44,8 +44,7 @@ jobs:
         GsvqMAn+R86f4ZR+mrUvNMEV7g==
         =wdUS
         -----END PGP PUBLIC KEY BLOCK-----
-        EOF | gpg --import
-
+        EOF
     - name: Encrypt secret
       run: |
         echo ${{ secrets.OSSRH_USERNAME }} | gpg --encrypt --armor --recipient "karl.bielefeldt@adtran.com"
